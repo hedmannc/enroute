@@ -1,0 +1,395 @@
+﻿@page "/"
+@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
+@using System.Text.Json.Nodes
+@using System.Threading
+@inject IJSRuntime JS
+
+<h1>Google Map Markers</h1>
+
+<GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
+
+<button @onclick="Recenter">Re-center to my Location</button>
+<button @onclick="AddDirections">Add Directions</button>
+<!--<button @onclick="RemoveMarker">Remove marker</button>
+<button @onclick="Recenter">Re-center marker</button>
+@if(_markers.Any())
+{
+<br/><text>Label: </text><input type="text" value="@_labelText" @onchange="UpdateLabelText" />
+<br />
+}
+<button @onclick="ToggleLabelFontWeight">Toggle label font-weight</button>
+<button @onclick="InvokeClustering">Invoke map cluster</button>
+<button @onclick="@ClearClustering">Clear cluster</button> -->
+
+
+<p>
+    Duration: @_durationTotalString <br />
+    Distance: @_distanceTotalString <br />
+</p>
+
+
+<MapEventList @ref="@_eventList" Events="@_events"></MapEventList>
+
+@functions {
+    private GoogleMap _map1 = default!;
+
+    private MapOptions _mapOptions = default!;
+
+    private readonly List<Marker> _markers = new List<Marker>();
+
+    private readonly List<String> _events = new List<String>();
+
+    private MapEventList _eventList = default!;
+
+    private string _labelText = "";
+
+    private MarkerClustering _markerClustering = default!;
+
+    private DirectionsRenderer dirRend = default!;
+    private string? _durationTotalString;
+    private string? _distanceTotalString;
+
+    private System.Timers.Timer _timer = new System.Timers.Timer();
+
+
+
+
+    protected override async void OnInitialized()
+    {
+        _mapOptions = new MapOptions()
+            {
+                Zoom = 20,
+                Center = new LatLngLiteral()
+                {
+                    Lat = 13.505892,
+                    Lng = 100.8162
+                },
+                MapTypeId = MapTypeId.Roadmap,
+                ClickableIcons = false
+
+            };
+
+        await Recenter();
+
+        LoadDBMarkers();
+
+        var timer = new Timer(new TimerCallback(_ =>
+       {
+
+           InvokeAsync(async () =>
+           {
+               await ReloadLocation(false);
+
+           });
+       }), null, 1000, 500);
+
+    }
+
+    private async Task AddMarker(LatLngLiteral location, string Category, string? name = "Name", string? description = "Description")
+    {
+        var currLocation = location;
+
+        //var position = await _map1.InteropObject.GetCenter();
+
+        var position = currLocation;
+
+        var marker = await Marker.CreateAsync(_map1.JsRuntime, 
+            new MarkerOptions()
+            {
+                Position = position,
+                Map = _map1.InteropObject,
+                Label = new MarkerLabel { Text = $"{name}", FontWeight = "bold" },
+                Draggable=false,
+                Icon = new Icon()
+                {
+                        Url = "https://www.freeiconspng.com/uploads/file-person-icon-black-01-svg-6.png",
+                        ScaledSize =  new GoogleMapsComponents.Maps.Size(){Height =36 , Width = 36}
+                    },
+                    Title = $"{name}"
+                    //Icon = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+            } ); /*:
+    new MarkerOptions()
+    {
+    Position = await _map1.InteropObject.GetCenter(),
+    Map = _map1.InteropObject,
+    Label = $"Test {_markers.Count()}",
+    Draggable=true,
+    Icon = new Icon()
+    {
+    Url = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+    }
+    //Icon = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+    }); */
+
+
+        var icon = await marker.GetIcon();
+
+        Console.WriteLine($"Get icon result type is : {icon.Value.GetType()}");
+
+        icon.Switch(
+            s => Console.WriteLine(s),
+            i => Console.WriteLine(i.Url),
+            _ => { });
+
+        _markers.Add(marker);
+        _labelText = await marker.GetLabelText();
+
+
+        var infoWindow = await InfoWindow.CreateAsync(_map1.JsRuntime, new InfoWindowOptions()
+            {
+                Position = position,
+                Content = $"{description}"
+            });
+
+
+        await marker.AddListener<MouseEvent>("click", async e =>
+        {
+            await infoWindow.SetPosition(position);
+            await infoWindow.Open(_map1.InteropObject);
+            await e.Stop();
+            string markerLabelText = await marker.GetLabelText();
+            _events.Add("click on " + markerLabelText);
+            StateHasChanged();
+
+
+
+
+        });
+    }
+
+    private async Task RemoveMarker(string labelName)
+    {
+        if (!_markers.Any())
+        {
+            return;
+        }
+        foreach(var m in _markers)
+        {
+            var labelname = await m.GetLabelMarkerLabel();
+
+
+
+
+
+            if (labelname.Text.Contains(labelName))
+            {
+                _events.Add(labelname.Text);
+
+                await m.SetMap(null);
+                _markers.Remove(m);
+
+            }
+        }
+        //
+
+
+
+
+        _labelText = _markers.Any() ? await _markers.First().GetLabelText() : "";
+    }
+
+    private async Task ReloadLocation(bool? recentermap = true)
+    {
+        await RemoveMarker("MyLocation");
+        var currentLocation = await GetLocation();
+
+        await AddMarker(currentLocation, "MyLocation","MyLocation");
+
+        if(recentermap == true)
+        {
+            await _map1.InteropObject.SetCenter(currentLocation);
+        }
+
+
+
+
+    }
+
+
+    private async Task Recenter()
+    {
+        await ReloadLocation();
+
+
+    }
+
+
+
+
+
+    private async Task UpdateLabelText(ChangeEventArgs e)
+    {
+        if (!_markers.Any())
+        {
+            return;
+        }
+
+        string newLabelText = e.Value?.ToString() ?? "";
+        if (_labelText != newLabelText)
+        {
+            _labelText = newLabelText;
+
+            var lastMarker = _markers.First();
+            await lastMarker.SetLabelText(_labelText);
+        }
+    }
+
+    private async Task ToggleLabelFontWeight()
+    {
+        if (!_markers.Any())
+        {
+            return;
+        }
+
+        var lastMarker = _markers.First();
+        var lastMarkerLabel = await lastMarker.GetLabelMarkerLabel();
+        lastMarkerLabel.FontWeight = (lastMarkerLabel.FontWeight == "bold") ? "normal" : "bold";
+        await lastMarker.SetLabel(lastMarkerLabel);
+    }
+
+    private async Task ClearClustering()
+    {
+        await _markerClustering.ClearMarkers();
+    }
+
+    private async Task InvokeClustering()
+    {
+        var coordinates = new List<LatLngLiteral>()
+            {
+                new LatLngLiteral() { Lng = 147.154312, Lat = -31.56391 },
+                new LatLngLiteral() { Lng = 150.363181, Lat = -33.718234 },
+                new LatLngLiteral() { Lng = 150.371124,Lat =  -33.727111 },
+                new LatLngLiteral() { Lng = 151.209834,Lat =  -33.848588 },
+                new LatLngLiteral() { Lng = 151.216968,Lat =  -33.851702 },
+                new LatLngLiteral() { Lng = 150.863657,Lat =  -34.671264 },
+                new LatLngLiteral() { Lng = 148.662905,Lat =  -35.304724 },
+                new LatLngLiteral() { Lng = 175.699196,Lat =  -36.817685 },
+                new LatLngLiteral() { Lng = 175.790222,Lat =  -36.828611 },
+                new LatLngLiteral() { Lng = 145.116667,Lat =  -37.75 },
+                new LatLngLiteral() { Lng = 145.128708,Lat =  -37.759859 },
+                new LatLngLiteral() { Lng = 145.133858,Lat =  -37.765015 },
+                new LatLngLiteral() { Lng = 145.143299,Lat =  -37.770104 },
+                new LatLngLiteral() { Lng = 145.145187,Lat =  -37.7737 },
+                new LatLngLiteral() { Lng = 145.137978,Lat =  -37.774785 },
+                new LatLngLiteral() { Lng = 144.968119,Lat =  -37.819616 },
+                new LatLngLiteral() { Lng = 144.695692,Lat =  -38.330766 },
+                new LatLngLiteral() { Lng = 175.053218,Lat =  -39.927193 },
+                new LatLngLiteral() { Lng = 174.865694,Lat =  -41.330162 },
+                new LatLngLiteral() { Lng = 147.439506,Lat =  -42.734358 },
+                new LatLngLiteral() { Lng = 147.501315,Lat =  -42.734358 },
+                new LatLngLiteral() { Lng = 147.438,Lat =  -42.735258 },
+                new LatLngLiteral() { Lng = 170.463352,Lat =  -43.999792 },
+            };
+
+        var markers = await GetMarkers(coordinates, _map1.InteropObject);
+
+        // If adding a clustering event listener, initialize markerclustering with an empty marker list 
+        // Clustering happens immediately upon adding markers, so including markers with the init 
+        // creates a race condition with JSInterop adding a listener. If not adding a listener, pass markers
+        // to CreateAsync to eliminate the latency of a second JSInterop call to AddMarkers.
+        _markerClustering = await MarkerClustering.CreateAsync(_map1.JsRuntime, _map1.InteropObject, markers);
+
+
+
+        LatLngBoundsLiteral? boundsLiteral = new LatLngBoundsLiteral(new LatLngLiteral() { Lat = coordinates.First().Lat, Lng = coordinates.First().Lng });
+        foreach (var literal in coordinates)
+        {
+            LatLngBoundsLiteral.CreateOrExtend(ref boundsLiteral, literal);
+        }
+
+        await _map1.InteropObject.FitBounds(boundsLiteral, OneOf.OneOf<int, GoogleMapsComponents.Maps.Coordinates.Padding>.FromT0(1));
+    }
+
+    private async Task<IEnumerable<Marker>> GetMarkers(IEnumerable<LatLngLiteral> coords, Map map)
+    {
+        var result = new List<Marker>(coords.Count());
+        foreach (var latLngLiteral in coords)
+        {
+            var marker = await Marker.CreateAsync(_map1.JsRuntime, new MarkerOptions()
+            {
+                Position = latLngLiteral,
+                Map = map,
+                Label = $"Test {result.Count()+1}",
+                //Icon = new Icon()
+                //{
+                //    Url = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+                //}
+                //Icon = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+            });
+            result.Add(marker);
+        }
+        return result;
+    }
+
+
+    private async Task RemoveRoute()
+    {
+        await dirRend.SetMap(null);
+
+        _durationTotalString = null;
+        _distanceTotalString = null;
+    }
+
+    private async Task OnAfterInitAsync()
+    {
+        //Create instance of DirectionRenderer
+        dirRend = await DirectionsRenderer.CreateAsync(_map1!.JsRuntime, new DirectionsRendererOptions()
+            {
+                Map = _map1.InteropObject
+            });
+    }
+
+    private async Task AddDirections()
+    {
+        var currentLocation = await GetLocation();
+        _durationTotalString = null;
+        _distanceTotalString = null;
+        if (await dirRend.GetMap() is null) await dirRend.SetMap(_map1!.InteropObject);
+
+        //Adding a waypoint
+        //var waypoints = new List<DirectionsWaypoint>();
+        //waypoints.Add(new DirectionsWaypoint() { Location = "Bethlehem, PA", Stopover = true });
+
+        //Direction Request
+        DirectionsRequest dr = new DirectionsRequest();
+        dr.Origin = currentLocation;
+        dr.Destination = "Bronx, NY";
+        //dr.Waypoints = waypoints;
+        dr.TravelMode = TravelMode.Walking;
+
+        //Calculate Route
+        var directionsResult = await dirRend.Route(dr);
+        if (directionsResult != null)
+        {
+            foreach (var route in directionsResult.Routes.SelectMany(x => x.Legs))
+            {
+                _durationTotalString += route.Duration.Text;
+                _distanceTotalString += route.Distance.Text;
+            }
+        }
+    }
+
+    private async Task<LatLngLiteral> GetLocation()
+    {
+        var result = await JS.InvokeAsync<LatLngLiteral>("getCoords");
+
+
+
+
+
+        return result;
+
+
+
+
+    }
+
+    private async void LoadDBMarkers()
+    {
+        var currentLocation = await GetLocation();
+    }
+
+
+
+}

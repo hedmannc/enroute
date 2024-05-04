@@ -1,0 +1,52 @@
+﻿@page "/map-legend"
+@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
+
+<h1>Google Map Legend</h1>
+
+<GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@AfterMapInit"></GoogleMap>
+<select @bind="@_controlPosition">
+    @foreach (var pos in Enum.GetValues(typeof(ControlPosition)))
+    {
+        <option value="@pos">@pos.ToString()</option>
+    }
+</select>
+<button @onclick="AddLegend">Add Legend</button>
+<button @onclick="RemoveLegend">Remove Legend</button>
+<button @onclick="AddLegend2">Add Legend 2</button>
+<button @onclick="RemoveLegend2">Remove Legend 2</button>
+<button @onclick="RemoveAllControls">Remove All Controls</button>
+
+<div id="legend" @ref="@LegendReference" style="display: none"><h3>Legend  </h3><button @onclick="() => HandleClick()">Alert from blazor</button></div>
+<div id="legend2" @ref="@LegendReference2" style="display: none"><h3>Legend 2 </h3><button @onclick="() => HandleClick()">Alert from blazor</button></div>
+
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+    }
+
+    #map {
+        height: 400px;
+        width: 100%;
+    }
+    #legend2, 
+    #legend {
+        font-family: Arial, sans-serif;
+        background: #fff;
+        padding: 10px;
+        margin: 10px;
+        border: 3px solid #000;
+    }
+
+        #legend h3 {
+            margin-top: 0;
+        }
+
+        #legend img {
+            vertical-align: middle;
+        }
+</style>

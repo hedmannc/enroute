@@ -1,0 +1,15 @@
+﻿@page "/map-circle-list"
+@using Microsoft.AspNetCore.Components
+@using GoogleMapsComponents
+
+<h1>Google Map Circle List</h1>
+
+<GoogleMap @ref="@_map" Id="map1" Options="@_mapOptions"></GoogleMap>
+
+<EditForm Model="new object()">
+  Bunch size: <InputNumber TValue="int" @bind-Value="_bunchsize" /><br />
+  <button @onclick="CreateBunchOfCircles">Add a bunch of circles</button><br />
+    <button @onclick="CreateBunchOfPolygon">Add a bunch of Polygons</button><br />
+    <button @onclick="RemoveBunchOfPolygon">Remove Polygons</button><br />
+  <p>Click on a circle to remove it.</p><br />
+</EditForm>
