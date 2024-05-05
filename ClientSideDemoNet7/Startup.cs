@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Threading.Tasks;
 
-namespace ClientSideDemo
+namespace EnrouteUI
 {
     public class Startup
     {
