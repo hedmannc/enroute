@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleMapsComponents", "GoogleMapsComponents\GoogleMapsComponents.csproj", "{EEFC0113-D075-4F36-ABC8-EAAB3A138079}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnrouteUI", "ClientSideDemoNet7\EnrouteUI.csproj", "{101D4021-9338-498D-834D-0335F6B8175B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnrouteUI", "EnrouteUI\EnrouteUI.csproj", "{101D4021-9338-498D-834D-0335F6B8175B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Enroute-Backend", "Enroute-Backend\Enroute-Backend.csproj", "{234AF752-4D96-442D-8E70-8E640E58BC79}"
 EndProject
