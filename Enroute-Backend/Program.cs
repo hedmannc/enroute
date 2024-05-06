@@ -2,18 +2,22 @@ using Enroute_Backend.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("appsettings.json")
+            .Build();
 
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(
-    options => options.UseInMemoryDatabase("AppDb"));
+    options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
