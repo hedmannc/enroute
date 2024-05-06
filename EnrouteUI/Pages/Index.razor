@@ -95,12 +95,12 @@
        }), null, 1000, 500);
 
 
-        if (authenticationState is not null)
+        if (authenticationState != null)
         {
             var authState = await authenticationState;
             var user = authState?.User;
 
-            if (user?.Identity is not null && user.Identity.IsAuthenticated)
+            if (user?.Identity != null && user.Identity.IsAuthenticated)
             {
                 var locationHistoryTimer = new Timer(new TimerCallback(_ =>
        {
