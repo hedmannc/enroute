@@ -6,11 +6,11 @@
 @inject IJSRuntime JS
 
 <h1>Google Map Markers</h1>
-
-<GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
-
-<button @onclick="Recenter">Re-center to my Location</button>
+<input @bind="Destination" />
 <button @onclick="AddDirections">Add Directions</button>
+<GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
+<button @onclick="Recenter">Re-center to my Location</button>
+
 <!--<button @onclick="RemoveMarker">Remove marker</button>
 <button @onclick="Recenter">Re-center marker</button>
 @if(_markers.Any())
@@ -29,7 +29,7 @@
 </p>
 
 
-<MapEventList @ref="@_eventList" Events="@_events"></MapEventList>
+<!--<MapEventList @ref="@_eventList" Events="@_events"></MapEventList>-->
 
 @functions {
     private GoogleMap _map1 = default!;
@@ -40,7 +40,7 @@
 
     private readonly List<String> _events = new List<String>();
 
-    private MapEventList _eventList = default!;
+   // private MapEventList _eventList = default!;
 
     private string _labelText = "";
 
@@ -49,6 +49,8 @@
     private DirectionsRenderer dirRend = default!;
     private string? _durationTotalString;
     private string? _distanceTotalString;
+
+    private string? Destination;
 
     private System.Timers.Timer _timer = new System.Timers.Timer();
 
@@ -354,7 +356,7 @@
         //Direction Request
         DirectionsRequest dr = new DirectionsRequest();
         dr.Origin = currentLocation;
-        dr.Destination = "Bronx, NY";
+        dr.Destination = "University of tehcnology Jamaica";
         //dr.Waypoints = waypoints;
         dr.TravelMode = TravelMode.Walking;
 
