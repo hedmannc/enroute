@@ -5,7 +5,7 @@
 @using System.Threading
 @inject IJSRuntime JS
 
-<h1>Google Map Markers</h1>
+
 <input @bind="Destination" />
 <button @onclick="AddDirections">Add Directions</button>
 <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
@@ -15,7 +15,11 @@
 <button @onclick="Recenter">Re-center marker</button>
 @if(_markers.Any())
 {
-<br/><text>Label: </text><input type="text" value="@_labelText" @onchange="UpdateLabelText" />
+<br/>
+
+<text>Label: </text>
+
+<input type="text" value="@_labelText" @onchange="UpdateLabelText" />
 <br />
 }
 <button @onclick="ToggleLabelFontWeight">Toggle label font-weight</button>
@@ -30,8 +34,12 @@
 
 
 <!--<MapEventList @ref="@_eventList" Events="@_events"></MapEventList>-->
-
 @functions {
+
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
     private GoogleMap _map1 = default!;
 
     private MapOptions _mapOptions = default!;
@@ -40,7 +48,7 @@
 
     private readonly List<String> _events = new List<String>();
 
-   // private MapEventList _eventList = default!;
+    // private MapEventList _eventList = default!;
 
     private string _labelText = "";
 
@@ -52,13 +60,13 @@
 
     private string? Destination;
 
-    private System.Timers.Timer _timer = new System.Timers.Timer();
-
 
 
 
     protected override async void OnInitialized()
     {
+
+
         _mapOptions = new MapOptions()
             {
                 Zoom = 20,
@@ -86,6 +94,28 @@
            });
        }), null, 1000, 500);
 
+
+        if (authenticationState is not null)
+        {
+            var authState = await authenticationState;
+            var user = authState?.User;
+
+            if (user?.Identity is not null && user.Identity.IsAuthenticated)
+            {
+                var locationHistoryTimer = new Timer(new TimerCallback(_ =>
+       {
+
+           InvokeAsync(async () =>
+                  {
+                      await ReloadLocation(false);
+
+                  });
+       }), null, 600000, 500);
+            }
+        }
+
+
+
     }
 
     private async Task AddMarker(LatLngLiteral location, string Category, string? name = "Name", string? description = "Description")
@@ -96,21 +126,21 @@
 
         var position = currLocation;
 
-        var marker = await Marker.CreateAsync(_map1.JsRuntime, 
+        var marker = await Marker.CreateAsync(_map1.JsRuntime,
             new MarkerOptions()
-            {
-                Position = position,
-                Map = _map1.InteropObject,
-                Label = new MarkerLabel { Text = $"{name}", FontWeight = "bold" },
-                Draggable=false,
-                Icon = new Icon()
                 {
+                    Position = position,
+                    Map = _map1.InteropObject,
+                    Label = new MarkerLabel { Text = $"{name}", FontWeight = "bold" },
+                    Draggable = false,
+                    Icon = new Icon()
+                    {
                         Url = "https://www.freeiconspng.com/uploads/file-person-icon-black-01-svg-6.png",
-                        ScaledSize =  new GoogleMapsComponents.Maps.Size(){Height =36 , Width = 36}
+                        ScaledSize = new GoogleMapsComponents.Maps.Size() { Height = 36, Width = 36 }
                     },
                     Title = $"{name}"
                     //Icon = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-            } ); /*:
+                }); /*:
     new MarkerOptions()
     {
     Position = await _map1.InteropObject.GetCenter(),
@@ -166,7 +196,7 @@
         {
             return;
         }
-        foreach(var m in _markers)
+        foreach (var m in _markers)
         {
             var labelname = await m.GetLabelMarkerLabel();
 
@@ -196,9 +226,9 @@
         await RemoveMarker("MyLocation");
         var currentLocation = await GetLocation();
 
-        await AddMarker(currentLocation, "MyLocation","MyLocation");
+        await AddMarker(currentLocation, "MyLocation", "MyLocation");
 
-        if(recentermap == true)
+        if (recentermap == true)
         {
             await _map1.InteropObject.SetCenter(currentLocation);
         }
@@ -286,8 +316,8 @@
 
         var markers = await GetMarkers(coordinates, _map1.InteropObject);
 
-        // If adding a clustering event listener, initialize markerclustering with an empty marker list 
-        // Clustering happens immediately upon adding markers, so including markers with the init 
+        // If adding a clustering event listener, initialize markerclustering with an empty marker list
+        // Clustering happens immediately upon adding markers, so including markers with the init
         // creates a race condition with JSInterop adding a listener. If not adding a listener, pass markers
         // to CreateAsync to eliminate the latency of a second JSInterop call to AddMarkers.
         _markerClustering = await MarkerClustering.CreateAsync(_map1.JsRuntime, _map1.InteropObject, markers);
@@ -309,16 +339,16 @@
         foreach (var latLngLiteral in coords)
         {
             var marker = await Marker.CreateAsync(_map1.JsRuntime, new MarkerOptions()
-            {
-                Position = latLngLiteral,
-                Map = map,
-                Label = $"Test {result.Count()+1}",
-                //Icon = new Icon()
-                //{
-                //    Url = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-                //}
-                //Icon = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-            });
+                {
+                    Position = latLngLiteral,
+                    Map = map,
+                    Label = $"Test {result.Count() + 1}",
+                    //Icon = new Icon()
+                    //{
+                    //    Url = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+                    //}
+                    //Icon = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+                });
             result.Add(marker);
         }
         return result;
