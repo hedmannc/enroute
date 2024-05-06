@@ -13,11 +13,14 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 
 
 
+builder.Services.AddDbContext<AuthenticationDbContext>(
+    options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddDbContext<ApplicationDbContext>(
     options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<AuthenticationDbContext>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
