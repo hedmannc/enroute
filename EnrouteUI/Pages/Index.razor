@@ -6,6 +6,7 @@
 @inject IJSRuntime JS
 
 
+
 <input @bind="Destination" />
 <button @onclick="AddDirections">Add Directions</button>
 <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>

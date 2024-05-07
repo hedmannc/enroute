@@ -26,8 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Models\" />
+    <ProjectReference Include="..\EnrouteAppLibrary\EnrouteAppLibrary.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Enroute_Backend.Models;
+using EnrouteAppLibrary.Models;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Enroute_Backend.Contexts;

@@ -1,44 +1,64 @@
-﻿@using EnrouteUI.Services
+﻿
 @using System.Text.Json
+@using System.Text
+@using static MyAuthenticationStateProvider
 @inherits LayoutComponentBase
 @inject IHttpClientFactory http
 @inject TokenProvider tokenprovider
-
+@inject MyAuthenticationStateProvider _auth
+@inject IJSRuntime js
 
 <div class="sidebar">
     <NavMenu />
 </div>
 
 
-<AuthorizeView>
-    <Authorized>
-        <p>Hello, @context.User.Identity?.Name!</p>
-    </Authorized>
-    <NotAuthorized>
-        <div>
-            Email:<input @bind="email" />
-        </div>
-        <div>
-            Password:   <input type="password" @bind="password" />
-        </div>
-        <div>
-            <button @onclick="SignIn">Sign in</button>
-        </div>
-        <p>You're not authorized.</p>
-    </NotAuthorized>
-</AuthorizeView>
-
 <div class="main">
-    
+
+
+
+
+
+    <div class="topbar px-4">
+        <CascadingAuthenticationState>
+            <AuthorizeView>
+                <Authorized>
+                    <p>Hello, @context.User.Identity?.Name!</p>
+
+
+                </Authorized>
+                <NotAuthorized>
+                    <div>
+                        Email:<input @bind="email" />
+                    </div>
+                    <div>
+                        Password:   <input type="password" @bind="password" />
+                    </div>
+                    <div>
+                        <button @onclick="SignIn">Sign in</button>
+                    </div>
+
+                    <div>
+                        <button @onclick="SignIn">Register</button>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </CascadingAuthenticationState>
+
+    </div>
+
     <div class="content px-4">
         @Body
     </div>
+    
+    
 </div>
 
 
 @code {
     public string email = string.Empty;
     public string password = string.Empty;
+
 
 
     private async Task SignIn()
@@ -50,52 +70,125 @@
 
 
 
-        var content = new StringContent(myObject.ToString());
+        var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
 
 
-
-
-
-        var response = await httpclient.PostAsync("account/login",content);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var token = await response.Content.ReadAsStringAsync();
-
-
-            tokenprovider = JsonSerializer.Deserialize<TokenProvider>(token);
-
-            if(tokenprovider != null)
+            var response = await httpclient.PostAsync("login", content);
+            if (response.IsSuccessStatusCode)
             {
-                httpclient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenprovider.accesstoken);
-                
-            }
-           
-            var result = await httpclient.GetAsync("profile");
+                var token = await response.Content.ReadAsStringAsync();
 
-            var userprofile = new UserProfile();
 
-            userprofile = JsonSerializer.Deserialize<UserProfile>(result.Content.ReadAsStream());
-            //add some check here
+                tokenprovider = JsonSerializer.Deserialize<TokenProvider>(token);
 
-            if(userprofile != null)
-            {
-                if(userprofile.UserName != null)
+                if (tokenprovider != null)
                 {
-                    var identity = new ClaimsIdentity(
-           new[]
-            {
-                new Claim(ClaimTypes.Name,  userprofile.UserName),
-                        },
-         "Custom Authentication");
 
-                    var newUser = new ClaimsPrincipal(identity);
-                    new AuthenticationService().CurrentUser = newUser;
-                }
-                    
-                }
-                
-    
-            
+
+                    //httpclient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenprovider.accessToken);
+
+
+                    httpclient.DefaultRequestHeaders.Add("Authorization", "Bearer " + tokenprovider.accessToken);
+
+
+
+                    var response2 = await httpclient.GetAsync("UserMaintenance/getUserRole");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var role = await response2.Content.ReadAsStringAsync();
+
+
+                        _auth.SignIn(email, role);
+
+                    }
+
+
+                } 
+
+
+
+            }
+            else
+            {
+                await js.InvokeVoidAsync("showFailToast", "Incorrect Credentials");
+            }
         }
+        catch (Exception e)
+        {
+            await js.InvokeVoidAsync("showFailToast", $"Failed to login {e.Message}");
+        }
+
+
+
+    }
+    
+
+    private async Task register()
+    {
+        var httpclient = http.CreateClient("Auth");
+
+        var myObject = JsonSerializer.Serialize(new { email = email, password = password });
+
+
+
+
+        var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
+
+
+        try
+        {
+            var response = await httpclient.PostAsync("register", content);
+            if (response.IsSuccessStatusCode)
+            {
+                var token = await response.Content.ReadAsStringAsync();
+
+
+                tokenprovider = JsonSerializer.Deserialize<TokenProvider>(token);
+
+                if (tokenprovider != null)
+                {
+
+
+                    //httpclient.DefaultRequestHeaders.Add("Authorization", "Bearer " + tokenprovider.accessToken);
+
+                    httpclient.DefaultRequestHeaders.Add("Authorization", "Bearer " + tokenprovider.accessToken);
+
+
+                     var response2 = await httpclient.GetAsync("UserMaintenance/getUserRole");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var role   = await response2.Content.ReadAsStringAsync();
+role = "";
+                    
+                    _auth.SignIn(email,role);
+
+                }
+
+                }
+
+               
+
+               
+
+
+
+
+            }
+            else
+            {
+                await js.InvokeVoidAsync("showFailToast", "Registration Failed, User already exist");
+            }
+        }
+        catch (Exception)
+        {
+            await js.InvokeVoidAsync("showFailToast", "Registration Failed");
+        }
+
+
+
     }
 }

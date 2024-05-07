@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Enroute_Backend.Models;
+namespace EnrouteAppLibrary.Models;
+
 
 public partial class ScheduleLocation
 {
