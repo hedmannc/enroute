@@ -2,6 +2,6 @@
 {
     public class Config
     {
-        public string BackendURL { get; set; } = "";
+        public string BackendURL { get; set; } = "https://localhost:7059/";
     }
 }
