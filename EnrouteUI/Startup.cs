@@ -1,9 +1,12 @@
-﻿using Blazored.SessionStorage;
+﻿using Blazored.LocalStorage;
+
+
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace EnrouteUI
@@ -32,8 +35,10 @@ namespace EnrouteUI
 
             });
 
-            builder.Services.AddBlazoredSessionStorage(config => {
+            builder.Services.AddBlazoredLocalStorage(config =>
+            {
                 config.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+                config.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                 config.JsonSerializerOptions.IgnoreReadOnlyProperties = true;
                 config.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                 config.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;

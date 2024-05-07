@@ -38,7 +38,7 @@ public class MyAuthenticationStateProvider : AuthenticationStateProvider {
         var result = Task.FromResult(new AuthenticationState(FakedAdmin));
         NotifyAuthenticationStateChanged(result);
     }
-    public void FakedSignOut() {
+    public void SignOut() {
         var result = Task.FromResult(new AuthenticationState(AnonymousUser));
         NotifyAuthenticationStateChanged(result);
     }

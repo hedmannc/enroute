@@ -2,11 +2,13 @@
 @using System.Text.Json
 @using System.Text
 @using static MyAuthenticationStateProvider
+@using Blazored.LocalStorage
 @inherits LayoutComponentBase
 @inject IHttpClientFactory http
 @inject TokenProvider tokenprovider
 @inject MyAuthenticationStateProvider _auth
 @inject IJSRuntime js
+@inject ILocalStorageService sessionStorageService
 
 <div class="sidebar">
     <NavMenu />
@@ -25,6 +27,9 @@
                 <Authorized>
                     <p>Hello, @context.User.Identity?.Name!</p>
 
+                    <div>
+                        <button @onclick="SignOut">Sign out</button>
+                    </div>
 
                 </Authorized>
                 <NotAuthorized>
@@ -58,12 +63,56 @@
 @code {
     public string email = string.Empty;
     public string password = string.Empty;
+    public HttpClient httpclient = new();
 
+
+    protected override async void OnInitialized()
+    {
+        httpclient = http.CreateClient("Auth");
+
+        var token = await sessionStorageService.GetItemAsStringAsync("token");
+
+        var email = await sessionStorageService.GetItemAsStringAsync("email");
+
+        if(token != null && email != null)
+        {
+            httpclient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+            var response2 = await httpclient.GetAsync("UserMaintenance/getUserRole");
+
+            if (response2.IsSuccessStatusCode)
+            {
+                var role = await response2.Content.ReadAsStringAsync();
+
+                _auth.SignIn(email, role);
+            }
+            else
+            {
+                await sessionStorageService.RemoveItemAsync("token");
+
+                await sessionStorageService.RemoveItemAsync("email");
+            }
+
+
+
+
+        }
+
+    }
+
+
+    private void SignOut()
+    {
+        email = string.Empty;
+        password = string.Empty;
+        _auth.SignOut();
+
+    }
 
 
     private async Task SignIn()
     {
-        var httpclient = http.CreateClient("Auth");
+
 
         var myObject = JsonSerializer.Serialize(new { email = email, password = password });
 
@@ -94,12 +143,21 @@
 
 
 
+
                     var response2 = await httpclient.GetAsync("UserMaintenance/getUserRole");
 
                     if (response.IsSuccessStatusCode)
                     {
                         var role = await response2.Content.ReadAsStringAsync();
 
+                        await sessionStorageService.SetItemAsStringAsync("email", email);
+
+                        if (tokenprovider.accessToken != null)
+                        {
+                            await sessionStorageService.SetItemAsStringAsync("token", tokenprovider.accessToken);
+                        }
+
+                       
 
                         _auth.SignIn(email, role);
 
@@ -128,7 +186,7 @@
 
     private async Task register()
     {
-        var httpclient = http.CreateClient("Auth");
+   
 
         var myObject = JsonSerializer.Serialize(new { email = email, password = password });
 
@@ -162,13 +220,21 @@
                 if (response.IsSuccessStatusCode)
                 {
                     var role   = await response2.Content.ReadAsStringAsync();
-role = "";
-                    
+                       
+                       
+                    await sessionStorageService.SetItemAsStringAsync("email", email);
+
+                       
+                        if (tokenprovider.accessToken != null)
+                        {
+                            await sessionStorageService.SetItemAsStringAsync("token", tokenprovider.accessToken);
+                        }
+
                     _auth.SignIn(email,role);
 
                 }
 
-                }
+              }
 
                
 
