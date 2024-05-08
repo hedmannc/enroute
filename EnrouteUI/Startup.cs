@@ -47,7 +47,7 @@ namespace EnrouteUI
             }
 
 );
-            builder.RootComponents.Add<App>("app");
+            builder.RootComponents.Add<App>("App");
 
            
             
