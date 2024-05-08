@@ -19,6 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\EnrouteAppLibrary\EnrouteAppLibrary.csproj" />
 		<ProjectReference Include="..\GoogleMapsComponents\GoogleMapsComponents.csproj" />
 	</ItemGroup>
 

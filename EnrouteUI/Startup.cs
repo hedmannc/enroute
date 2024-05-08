@@ -1,6 +1,5 @@
 ﻿using Blazored.LocalStorage;
-
-
+using EnrouteUI.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +26,7 @@ namespace EnrouteUI
             builder.Services.AddScoped<MyAuthenticationStateProvider>();
             builder.Services.AddScoped<MyAuthenticationStateProvider.TokenProvider>();
             builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<MyAuthenticationStateProvider>());
+            builder.Services.AddScoped<Locations>();
             builder.Services.AddAuthorizationCore();
 
             builder.Services.AddHttpClient("Auth", op =>

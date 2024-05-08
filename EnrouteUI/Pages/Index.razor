@@ -1,16 +1,31 @@
 ﻿@page "/"
+@using EnrouteAppLibrary.Models
+@using EnrouteUI.Services
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
 @using System.Text.Json.Nodes
 @using System.Threading
 @inject IJSRuntime JS
+@inject Locations locService
 
 
 
 <input @bind="Destination" />
-<button @onclick="AddDirections">Add Directions</button>
+<button @onclick="AddDirections">Find Destination</button>
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="Security">
+        <input @bind="userLogin" />
+        <button @onclick="FindUser">Find User</button>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
 <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
 <button @onclick="Recenter">Re-center to my Location</button>
+
+@if (RoutingMode)
+{
+    <button @onclick="RemoveRoute">Remove Route</button>
+}
 
 <!--<button @onclick="RemoveMarker">Remove marker</button>
 <button @onclick="Recenter">Re-center marker</button>
@@ -34,12 +49,17 @@
 </p>
 
 
-<!--<MapEventList @ref="@_eventList" Events="@_events"></MapEventList>-->
+<MapEventList @ref="@_eventList" Events="@_events"></MapEventList>
 @functions {
 
 
     [CascadingParameter]
+
+
     private Task<AuthenticationState>? authenticationState { get; set; }
+
+
+    private MapEventList _eventList = default!;
 
     private GoogleMap _map1 = default!;
 
@@ -48,6 +68,10 @@
     private readonly List<Marker> _markers = new List<Marker>();
 
     private readonly List<String> _events = new List<String>();
+
+    private List<Location> locations = new List<Location>();
+
+    private List<Building> buildings = new List<Building>();
 
     // private MapEventList _eventList = default!;
 
@@ -61,6 +85,10 @@
 
     private string? Destination;
 
+    private string? userLogin;
+
+    private bool RoutingMode = false;
+
 
 
 
@@ -73,8 +101,8 @@
                 Zoom = 20,
                 Center = new LatLngLiteral()
                 {
-                    Lat = 13.505892,
-                    Lng = 100.8162
+                    Lat = 18.0181764,
+                    Lng = -76.7435785
                 },
                 MapTypeId = MapTypeId.Roadmap,
                 ClickableIcons = false
@@ -83,7 +111,7 @@
 
         await Recenter();
 
-        LoadDBMarkers();
+        await LoadDBMarkers();
 
         var timer = new Timer(new TimerCallback(_ =>
        {
@@ -119,7 +147,16 @@
 
     }
 
-    private async Task AddMarker(LatLngLiteral location, string Category, string? name = "Name", string? description = "Description")
+    private async Task OnAfterInitAsync()
+    {
+        //Create instance of DirectionRenderer
+        dirRend = await DirectionsRenderer.CreateAsync(_map1!.JsRuntime, new DirectionsRendererOptions()
+            {
+                Map = _map1.InteropObject
+            });
+    }
+
+    private async Task AddMarker(LatLngLiteral location,string? name = "Name", string? description = "Description")
     {
         var currLocation = location;
 
@@ -136,7 +173,7 @@
                     Draggable = false,
                     Icon = new Icon()
                     {
-                        Url = "https://www.freeiconspng.com/uploads/file-person-icon-black-01-svg-6.png",
+                        Url = name == "MyLocation"?"https://www.freeiconspng.com/uploads/file-person-icon-black-01-svg-6.png":"https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
                         ScaledSize = new GoogleMapsComponents.Maps.Size() { Height = 36, Width = 36 }
                     },
                     Title = $"{name}"
@@ -189,6 +226,7 @@
 
 
         });
+
     }
 
     private async Task RemoveMarker(string labelName)
@@ -227,7 +265,7 @@
         await RemoveMarker("MyLocation");
         var currentLocation = await GetLocation();
 
-        await AddMarker(currentLocation, "MyLocation", "MyLocation");
+        await AddMarker(currentLocation, "MyLocation", "");
 
         if (recentermap == true)
         {
@@ -358,24 +396,22 @@
 
     private async Task RemoveRoute()
     {
+
+        RoutingMode = false;
         await dirRend.SetMap(null);
 
         _durationTotalString = null;
         _distanceTotalString = null;
     }
 
-    private async Task OnAfterInitAsync()
-    {
-        //Create instance of DirectionRenderer
-        dirRend = await DirectionsRenderer.CreateAsync(_map1!.JsRuntime, new DirectionsRendererOptions()
-            {
-                Map = _map1.InteropObject
-            });
-    }
 
-    private async Task AddDirections()
+
+    private async Task addDirection(LatLngLiteral dest)
     {
         var currentLocation = await GetLocation();
+
+        RoutingMode = true;
+
         _durationTotalString = null;
         _distanceTotalString = null;
         if (await dirRend.GetMap() is null) await dirRend.SetMap(_map1!.InteropObject);
@@ -387,7 +423,7 @@
         //Direction Request
         DirectionsRequest dr = new DirectionsRequest();
         dr.Origin = currentLocation;
-        dr.Destination = "University of tehcnology Jamaica";
+        dr.Destination = dest;
         //dr.Waypoints = waypoints;
         dr.TravelMode = TravelMode.Walking;
 
@@ -402,6 +438,9 @@
             }
         }
     }
+
+
+
 
     private async Task<LatLngLiteral> GetLocation()
     {
@@ -418,11 +457,101 @@
 
     }
 
-    private async void LoadDBMarkers()
+    private async Task LoadDBMarkers()
     {
-        var currentLocation = await GetLocation();
+        locations = new List<Location>();
+
+        buildings = new List<Building>();
+
+        locations.AddRange(await locService.getlLocations());
+
+        buildings.AddRange( await locService.getBuildings());
+
+        foreach(var loc in locations)
+        {
+            var building = buildings.Where(a => a.Id == loc.BuildingId).FirstOrDefault();
+
+            if(building != null)
+            {
+                var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(building.Latitude), Lng = Convert.ToDouble(building.Longitude) };
+
+
+                if (loc.Name != null)
+                {
+                    //await RemoveMarker(loc.Name);
+                    await AddMarker(latlong, loc.Name, loc.Description);
+                }
+
+
+            }
+
+
+
+        }
     }
 
+
+    private async Task AddDirections()
+    {
+        if(String.IsNullOrEmpty(Destination) || String.IsNullOrWhiteSpace(Destination))
+        {
+            await JS.InvokeVoidAsync("showFailToast", "Destination has not been entered");
+            return;
+        }
+
+        var loc = locations.Where(a => a.Name?.ToLower().Trim() == Destination.ToLower().Trim()).FirstOrDefault();
+
+
+
+        if(loc != null)
+        {
+            var building = buildings.Where(a => a.Id == loc.BuildingId).FirstOrDefault();
+
+            if (building != null)
+            {
+                var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(building.Latitude), Lng = Convert.ToDouble(building.Longitude) };
+
+                await addDirection(latlong);
+
+            }
+        }
+
+        if(loc == null)
+        {
+            await JS.InvokeVoidAsync("showFailToast", "Destination could not be found");
+        }
+    }
+
+    private async Task FindUser()
+    {
+        if (String.IsNullOrEmpty(Destination) || String.IsNullOrWhiteSpace(Destination))
+        {
+            await JS.InvokeVoidAsync("showFailToast", "Destination has not been entered");
+            return;
+        }
+
+        var loc = locations.Where(a => a.Name?.ToLower() == Destination).FirstOrDefault();
+
+
+
+        if (loc != null)
+        {
+            var building = buildings.Where(a => a.Id == loc.BuildingId).FirstOrDefault();
+
+            if (building != null)
+            {
+                var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(building.Latitude), Lng = Convert.ToDouble(building.Longitude) };
+
+                await addDirection(latlong);
+
+            }
+        }
+
+        if (loc == null)
+        {
+            await JS.InvokeVoidAsync("showFailToast", "Destination could not be found");
+        }
+    }
 
 
 }

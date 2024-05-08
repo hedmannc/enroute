@@ -1,6 +1,7 @@
 ﻿using Enroute_Backend.Contexts;
 using EnrouteAppLibrary.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,15 +14,21 @@ namespace Enroute_Backend.Controllers
     public class LocationsController : ControllerBase
     {
 
+        public readonly ApplicationDbContext _applicationDbContext;
+        public LocationsController( ApplicationDbContext applicationDbContext)
+        {
+            _applicationDbContext = applicationDbContext;
+        }
+
         [HttpGet]
-        [Authorize]
+
         [ActionName("getlocations")]
         public async Task<IActionResult> GetLocations()
         {
 
             try
             {
-                var db = new ApplicationDbContext();
+                var db = _applicationDbContext;
 
                 var locations =await db.Locations.ToListAsync();
 
@@ -42,14 +49,14 @@ namespace Enroute_Backend.Controllers
 
 
         [HttpGet]
-        [Authorize]
+
         [ActionName("getbuilding")]
         public async Task<IActionResult> GetBuilding(int buildingid)
         {
 
             try
             {
-                var db = new ApplicationDbContext();
+                var db = _applicationDbContext;
 
                 var building = await db.Buildings.Where(a => a.Id == buildingid).FirstAsync();
 
@@ -70,14 +77,14 @@ namespace Enroute_Backend.Controllers
 
 
         [HttpGet]
-        [Authorize]
+        
         [ActionName("GetBuildings")]
         public async Task<IActionResult> GetBuildings()
         {
 
             try
             {
-                var db = new ApplicationDbContext();
+                var db = _applicationDbContext;
 
                 var buildings = await db.Buildings.ToListAsync();
 
@@ -107,7 +114,7 @@ namespace Enroute_Backend.Controllers
 
             try
             {
-                var db = new ApplicationDbContext();
+                var db = _applicationDbContext;
 
                 await db.Buildings.AddAsync(building);
 
@@ -133,7 +140,7 @@ namespace Enroute_Backend.Controllers
 
             try
             {
-                var db = new ApplicationDbContext();
+                var db = _applicationDbContext;
 
                await db.Locations.AddAsync(location);
 

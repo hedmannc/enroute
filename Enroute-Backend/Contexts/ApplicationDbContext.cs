@@ -8,10 +8,6 @@ namespace Enroute_Backend.Contexts;
 
 public partial class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext()
-    {
-    }
-
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
@@ -31,8 +27,8 @@ public partial class ApplicationDbContext : DbContext
     {
         modelBuilder.Entity<Building>(entity =>
         {
-            entity.Property(e => e.Latitude).HasColumnType("numeric(18, 0)");
-            entity.Property(e => e.Longitude).HasColumnType("numeric(18, 0)");
+            entity.Property(e => e.Latitude).HasColumnType("numeric(18, 10)");
+            entity.Property(e => e.Longitude).HasColumnType("numeric(18, 10)");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -66,8 +62,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasNoKey()
                 .ToTable("UserLocationHistory");
 
-            entity.Property(e => e.Latitude).HasColumnType("numeric(18, 0)");
-            entity.Property(e => e.Longitude).HasColumnType("numeric(18, 0)");
+            entity.Property(e => e.Latitude).HasColumnType("numeric(18, 10)");
+            entity.Property(e => e.Longitude).HasColumnType("numeric(18, 10)");
             entity.Property(e => e.UserId)
                 .HasMaxLength(100)
                 .IsUnicode(false);
