@@ -24,7 +24,7 @@ public class MyAuthenticationStateProvider : AuthenticationStateProvider {
                 new Claim(ClaimTypes.Name, email),
                 new Claim(ClaimTypes.Role, role),
             };
-        var identity = new ClaimsIdentity(claims, "Real");
+        var identity = new ClaimsIdentity(claims);
 
         var principal = new ClaimsPrincipal(identity);
 
