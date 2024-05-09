@@ -59,7 +59,6 @@ public partial class ApplicationDbContext : DbContext
         modelBuilder.Entity<UserLocationHistory>(entity =>
         {
             entity
-                .HasNoKey()
                 .ToTable("UserLocationHistory");
 
             entity.Property(e => e.Latitude).HasColumnType("numeric(18, 10)");

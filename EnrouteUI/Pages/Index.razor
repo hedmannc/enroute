@@ -8,9 +8,14 @@
 @using Majorsoft.Blazor.Components.Timer
 @inject IJSRuntime JS
 @inject Locations locService
+@inject Users userService
 
 
 <AdvancedTimer @ref="_counter" IntervalInMilisec="1000" DelayInMilisec="2000" Occurring="Times.Exactly(1)" OnIntervalElapsed="@(c => Counter(c))" />
+
+
+<AdvancedTimer @ref="_counter2" IntervalInMilisec="60000" DelayInMilisec="2000" Occurring="Times.Exactly(1)" OnIntervalElapsed="@(c => Counter2(c))" />
+
 
 
 <input @bind="Destination" />
@@ -24,6 +29,13 @@
 
 <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
 <button @onclick="Recenter">Re-center to my Location</button>
+
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="Security">
+        <button @onclick="FindUser">Add Location</button>
+        <button @onclick="FindUser">Add Buidling</button>
+    </AuthorizeView>
+    </CascadingAuthenticationState>
 
 
 @if (RoutingMode)
@@ -106,6 +118,8 @@
     public bool addingMarker = true;
 
     private AdvancedTimer _counter = new();
+
+    private AdvancedTimer _counter2 = new();
     //private ulong _count = 0;
     private async void Counter(ulong count)
     {
@@ -113,7 +127,16 @@
         CounterReset();
 
     }
+
+    private async void Counter2(ulong count)
+    {
+        await SetUserLocationHistory();
+        Counter2Reset();
+
+    }
     private void CounterReset() => _counter.Reset();
+
+    private void Counter2Reset() => _counter2.Reset();
 
 
 
@@ -144,11 +167,11 @@
         {
 
         InvokeAsync(async () =>
-        {
-        await ReloadLocation(false);
+            {
+            await ReloadLocation(false);
 
-        });
-        }), null, 1000, 1000);
+            });
+            }), null, 1000, 1000);
 
 
             if (authenticationState != null)
@@ -273,6 +296,7 @@
         await e.Stop();
         string markerLabelText = await marker.GetLabelText();
         _events.Add("click on " + markerLabelText);
+        Destination = name;
         StateHasChanged();
 
 
@@ -312,9 +336,26 @@
         //_labelText = _markers.Any() ? await _markers.First().GetLabelText() : "";
     }
 
+    private async Task SetUserLocationHistory()
+    {
+
+        var currentLocation = await GetLocation();
+
+        if(currentLocation != null)
+        {
+
+             userService.setUserLocation(currentLocation);
+        }
+
+ 
+       
+
+    }
+
+
     private async Task ReloadLocation(bool? recentermap = true)
     {
-        if(Mylocations.Count() > 1)
+        if (Mylocations.Count() > 1)
         {
             var markers = Mylocations;
 
@@ -328,7 +369,7 @@
 
 
 
-        if(MyLocation != null)
+        if (MyLocation != null)
         {
             await MyLocation.SetMap(null);
             MyLocation = null;
@@ -340,7 +381,7 @@
             await AddMarker(currentLocation, "MyLocation", "");
             addingMarker = false;
         }
-     
+
 
         if (recentermap == true)
         {
@@ -348,7 +389,7 @@
             await _map1.InteropObject.SetZoom(20);
         }
 
-       
+
 
     }
 

@@ -31,6 +31,7 @@ namespace EnrouteUI
             builder.Services.AddScoped<MyAuthenticationStateProvider.TokenProvider>();
             builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<MyAuthenticationStateProvider>());
             builder.Services.AddScoped<Locations>();
+            builder.Services.AddScoped<Users>();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddBlazorBootstrap();
 
