@@ -91,6 +91,8 @@
 
     private Marker? MyLocation = null;
 
+    public Timer? timer = null;
+
 
 
 
@@ -116,15 +118,15 @@
 
 
 
-        var timer = new Timer(new TimerCallback(_ =>
-       {
+        timer = new Timer(new TimerCallback(_ =>
+        {
 
-           InvokeAsync(async () =>
-           {
-               await ReloadLocation(false);
+            InvokeAsync(async () =>
+            {
+                await ReloadLocation(false);
 
-           });
-       }), new System.Threading.AutoResetEvent(true), 1000, 500);
+            });
+        }), null, 1000, 1000);
 
 
         if (authenticationState != null)
@@ -275,6 +277,9 @@
 
     private async Task ReloadLocation(bool? recentermap = true)
     {
+
+
+
         if(MyLocation != null)
         {
             await MyLocation.SetMap(null);
@@ -287,6 +292,7 @@
         if (recentermap == true)
         {
             await _map1.InteropObject.SetCenter(currentLocation);
+            await _map1.InteropObject.SetZoom(20);
         }
 
 
