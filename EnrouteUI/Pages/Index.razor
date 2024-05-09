@@ -100,6 +100,8 @@
 
     public string? currentRoutedDestination;
 
+    public bool addingMarker = false;
+
     private AdvancedTimer _counter = new();
     //private ulong _count = 0;
     private async void Counter(ulong count)
@@ -133,37 +135,37 @@
 
         await Recenter();
 
-        
 
-        /*timer = new Timer(new TimerCallback(_ =>
-        {
 
-            InvokeAsync(async () =>
-            {
-                await ReloadLocation(false);
+            /*timer = new Timer(new TimerCallback(_ =>
+    {
 
-            });
+    InvokeAsync(async () =>
+    {
+    await ReloadLocation(false);
+
+        });
         }), null, 1000, 1000);
 
 
         if (authenticationState != null)
         {
-            var authState = await authenticationState;
-            var user = authState?.User;
+        var authState = await authenticationState;
+        var user = authState?.User;
 
-            if (user?.Identity != null && user.Identity.IsAuthenticated)
+        if (user?.Identity != null && user.Identity.IsAuthenticated)
             {
-                var locationHistoryTimer = new Timer(new TimerCallback(_ =>
-       {
+            var locationHistoryTimer = new Timer(new TimerCallback(_ =>
+              {
 
-           InvokeAsync(async () =>
+                  InvokeAsync(async () =>
                   {
-                      await ReloadLocation(false);
+                  await ReloadLocation(false);
 
-                  });
+       });
        }), null, 600000, 500);
-            }
-        } */
+    }
+    } */
 
 
         await LoadDBMarkers();
@@ -306,8 +308,13 @@
             MyLocation = null;
         }
         var currentLocation = await GetLocation();
-
-        await AddMarker(currentLocation, "MyLocation", "");
+        if (!addingMarker)
+        {
+            addingMarker = true;
+            await AddMarker(currentLocation, "MyLocation", "");
+            addingMarker = false;
+        }
+     
 
         if (recentermap == true)
         {
@@ -315,8 +322,7 @@
             await _map1.InteropObject.SetZoom(20);
         }
 
-
-
+       
 
     }
 

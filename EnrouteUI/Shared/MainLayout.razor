@@ -22,19 +22,20 @@
   <Sidebar @ref="sidebar"
              IconName="IconName.PinMap"
              Title="Enroute"
-             DataProvider="SidebarDataProvider" />
+             DataProvider="SidebarDataProvider"/>
 
 <main>
 
 
-        <div class="bb-top-row px-4 d-flex justify-content-end top-row">
+        <div class="bb-top-row px-4 d-flex justify-content-end ">
         <CascadingAuthenticationState>
             <AuthorizeView>
                 <Authorized>
-                    <p>Hello, @context.User.Identity?.Name!</p>
-
+                    <label>Hello, @context.User.Identity?.Name!</label>
+                        &nbsp;
+                        &nbsp;
                     <div>
-                        <button @onclick="SignOut">Sign out</button>
+                        <button class="btn btn-danger btn-lg btn-block"@onclick="SignOut">Sign out</button>
                     </div>
 
                 </Authorized>
@@ -46,11 +47,12 @@
                         Password:   <input type="password" @bind="password" />
                     </div> -->
                     <div>
-                        <button @onclick="(() => {ShowModal(true,true);})">Sign in</button>
+                            <button class="btn btn-primary btn-lg btn-block" @onclick="(() => {ShowModal(true,true);})">Sign in</button>
                     </div>
-
+                    &nbsp;
+                    &nbsp;
                     <div>
-                            <button @onclick="(() => {ShowModal(false,true);})">Register</button>
+                            <button class="btn btn-primary btn-lg btn-block" @onclick="(() => {ShowModal(false,true);})">Register</button>
                     </div>
                 </NotAuthorized>
             </AuthorizeView>
@@ -72,7 +74,7 @@
 {
     <div class="loading">
 
-        <div Class="spinner">
+        <!--<div Class="spinner">
 
             <div>
                 Email:<input @bind="email" />
@@ -88,16 +90,50 @@
                 <button @onclick="(() => {ShowModal(true,false);})">Cancel</button>
             </div>
 
+        </div> -->
+
+
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                    <div class="card shadow-2-strong" style="border-radius: 1rem;">
+                        <div class="card-body p-5 text-center">
+
+                            <h3 class="mb-5">Sign In</h3>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input type="email" @bind="email" id="typeEmailX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typeEmailX-2">Email</label>
+                            </div>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input type="password" @bind="password" id="typePasswordX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typePasswordX-2">Password</label>
+                            </div>
+
+
+
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block" @onclick="SignIn" type="submit">Login</button>
+
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-danger btn-lg btn-block" @onclick="(() => {ShowModal(true,false);})" type="submit">Cancel</button>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
+
+
 }
 
 @if (reg)
 {
     <div class="loading">
 
-        <div Class="spinner">
+        <!--<div Class="spinner">
 
             <div>
                 Email:<input @bind="email" />
@@ -114,6 +150,42 @@
             </div>
 
 
+        </div>-->
+
+
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                    <div class="card shadow-2-strong" style="border-radius: 1rem;">
+                        <div class="card-body p-5 text-center">
+
+                            <h3 class="mb-5">Register</h3>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input type="email" @bind="email" id="typeEmailX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typeEmailX-2">Email</label>
+                            </div>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input type="password" @bind="password" id="typePasswordX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typePasswordX-2">Password</label>
+                            </div>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input type="password" @bind="confirmpassword" id="typePasswordX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typePasswordX-2">Confirm Password</label>
+                            </div>
+
+
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block" @onclick="register" type="submit">Register</button>
+
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-danger btn-lg btn-block" @onclick="(() => {ShowModal(false,false);})" type="submit">Cancel</button>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -144,6 +216,7 @@
 
     public string email = string.Empty;
     public string password = string.Empty;
+    public string confirmpassword = string.Empty;
     public HttpClient httpclient = new();
 
     Sidebar? sidebar;
@@ -156,16 +229,27 @@
     private bool reg = false;
 
 
-    private void Hide() {
-        visible = false;
-    }
+
 
     private void Show() {
         visible = true;
     }
 
+    private void Hide()
+    {
+        visible = false;
+    }
+
     private void ShowModal(bool sign, bool show)
     {
+        if (!show)
+        {
+
+            clearLogin();
+            
+        }
+
+
         if (sign)
         {
             signin = show;
@@ -174,6 +258,14 @@
         {
             reg = show;
         }
+
+    }
+
+    private void clearLogin()
+    {
+        password = string.Empty;
+        confirmpassword = string.Empty;
+        email = string.Empty;
 
     }
 
@@ -192,19 +284,35 @@
             new NavItem { Id = "1", Href = "/", IconName = IconName.HouseDoorFill, Text = "Home", Match=NavLinkMatch.All},
             //new NavItem { Id = "2", Href = "/counter", IconName = IconName.PlusSquareFill, Text = "Counter"},
             //new NavItem { Id = "3", Href = "/weather", IconName = IconName.Table, Text = "Fetch Data"},
+
         };
 
         return navItems;
     }
 
 
-    protected override async void OnInitialized()
+   /* protected override async void OnInitialized()
+    {
+
+
+
+
+    }*/
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await LoginFromSession();
+
+    }
+
+
+    private async Task LoginFromSession()
     {
         try
         {
+            Show();
 
-
-           
             httpclient = http.CreateClient("Auth");
 
             var token = await sessionStorageService.GetItemAsStringAsync("token");
@@ -244,11 +352,9 @@
         {
             Hide();
         }
-
-
-
-
+        
     }
+
 
 
     private async void SignOut()
@@ -266,15 +372,16 @@
 
     private async Task SignIn()
     {
+
+        if (String.IsNullOrEmpty(email) || String.IsNullOrWhiteSpace(email) || String.IsNullOrEmpty(password) || String.IsNullOrWhiteSpace(password))
+        {
+            await js.InvokeVoidAsync("showFailToast", "No Credentials entered");
+            return;
+        }
+
         try
         {
             Show();
-
-            if (String.IsNullOrEmpty(email) || String.IsNullOrWhiteSpace(email) || String.IsNullOrEmpty(password) || String.IsNullOrWhiteSpace(password))
-            {
-                await js.InvokeVoidAsync("showFailToast", "No Credentials entered");
-                return;
-            }
 
             var myObject = JsonSerializer.Serialize(new { email = email, password = password });
 
@@ -366,6 +473,18 @@
     {
 
 
+        if (String.IsNullOrEmpty(email) || String.IsNullOrWhiteSpace(email) || String.IsNullOrEmpty(password) || String.IsNullOrWhiteSpace(password) || String.IsNullOrEmpty(confirmpassword) || String.IsNullOrWhiteSpace(confirmpassword))
+        {
+            await js.InvokeVoidAsync("showFailToast", "Credentials incomplete");
+            return;
+        }
+
+        if(password != confirmpassword)
+        {
+            await js.InvokeVoidAsync("showFailToast", "Passwords do not match");
+            return;
+        }
+
 
 
         try
@@ -421,7 +540,19 @@
             else
             {
                 
-                await js.InvokeVoidAsync("showFailToast", "Registration Failed, User already exist");
+                var err = await response.Content.ReadAsStringAsync();
+
+                var d = JsonSerializer.Deserialize<ErrorDetails>(err);
+                if (d != null)
+                {
+
+                    await js.InvokeVoidAsync("showFailToast", $"Registration Failed - {d.errors.ToString()}");
+
+                }
+                else
+                {
+                    await js.InvokeVoidAsync("showFailToast", $"Registration Failed - {err}");
+                }
             }
         }
         catch (Exception)
