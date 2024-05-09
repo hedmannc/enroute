@@ -72,6 +72,9 @@
 
     private readonly List<Marker> _markers = new List<Marker>();
 
+
+    private readonly List<Marker> Mylocations = new List<Marker>();
+
     private readonly List<String> _events = new List<String>();
 
     private List<Location> locations = new List<Location>();
@@ -100,7 +103,7 @@
 
     public string? currentRoutedDestination;
 
-    public bool addingMarker = false;
+    public bool addingMarker = true;
 
     private AdvancedTimer _counter = new();
     //private ulong _count = 0;
@@ -137,42 +140,47 @@
 
 
 
-            /*timer = new Timer(new TimerCallback(_ =>
-    {
+        /*timer = new Timer(new TimerCallback(_ =>
+        {
 
-    InvokeAsync(async () =>
-    {
-    await ReloadLocation(false);
+        InvokeAsync(async () =>
+        {
+        await ReloadLocation(false);
 
         });
         }), null, 1000, 1000);
 
 
-        if (authenticationState != null)
-        {
-        var authState = await authenticationState;
-        var user = authState?.User;
-
-        if (user?.Identity != null && user.Identity.IsAuthenticated)
+            if (authenticationState != null)
             {
-            var locationHistoryTimer = new Timer(new TimerCallback(_ =>
-              {
+            var authState = await authenticationState;
+            var user = authState?.User;
 
-                  InvokeAsync(async () =>
+            if (user?.Identity != null && user.Identity.IsAuthenticated)
                   {
-                  await ReloadLocation(false);
+                  var locationHistoryTimer = new Timer(new TimerCallback(_ =>
+           {
 
-       });
-       }), null, 600000, 500);
-    }
-    } */
+           InvokeAsync(async () =>
+           {
+           await ReloadLocation(false);
+
+           });
+           }), null, 600000, 500);
+        }
+        } */
 
 
         await LoadDBMarkers();
 
 
 
+
+
     }
+
+
+
 
     private async Task OnAfterInitAsync()
     {
@@ -183,6 +191,11 @@
             });
     }
 
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await Task.Run(() => addingMarker = false);
+    }
 
 
 
@@ -235,6 +248,8 @@
         if (name == "MyLocation")
         {
             MyLocation = marker;
+
+            Mylocations.Add(marker);
         }
         else
         {
@@ -299,6 +314,17 @@
 
     private async Task ReloadLocation(bool? recentermap = true)
     {
+        if(Mylocations.Count() > 1)
+        {
+            var markers = Mylocations;
+
+
+            foreach (var marker in markers)
+            {
+                await marker.SetMap(null);
+                MyLocation = null;
+            }
+        }
 
 
 
@@ -329,6 +355,7 @@
 
     private async Task Recenter()
     {
+
         await ReloadLocation();
 
 

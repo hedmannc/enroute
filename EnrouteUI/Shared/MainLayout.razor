@@ -24,10 +24,49 @@
              Title="Enroute"
              DataProvider="SidebarDataProvider"/>
 
+
+    <Offcanvas @ref="offcanvas">
+        <BodyTemplate>
+
+            <CascadingAuthenticationState>
+                <AuthorizeView>
+                    <Authorized>
+                        <label>Hello, @context.User.Identity?.Name!</label>
+                        &nbsp;
+                        &nbsp;
+                        <div>
+                            <button class="btn btn-danger btn-lg btn-block" @onclick="SignOut">Sign out</button>
+                        </div>
+
+                    </Authorized>
+                    <NotAuthorized>
+                        <!--   <div>
+                                Email:<input @bind="email" />
+                            </div>
+                            <div>
+                                Password:   <input type="password" @bind="password" />
+                            </div> -->
+                        <div>
+                            <button class="btn btn-primary btn-lg btn-block" @onclick="(async () => {ShowModal(true,true);  await OnHideOffcanvasClick(); Hide();})">Sign in</button>
+                        </div>
+                        &nbsp;
+                        &nbsp;
+                        <div>
+                            <button class="btn btn-primary btn-lg btn-block" @onclick="( async () => {ShowModal(false,true); await OnHideOffcanvasClick();  Hide(); })">Register</button>
+                        </div>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </CascadingAuthenticationState>
+            </BodyTemplate>
+    </Offcanvas>
+
+
 <main>
 
 
-        <div class="bb-top-row px-4 d-flex justify-content-end ">
+        <div class="bb-top-row px-4 d-flex justify-content-end top-row">
+
+     
         <CascadingAuthenticationState>
             <AuthorizeView>
                 <Authorized>
@@ -57,8 +96,12 @@
                 </NotAuthorized>
             </AuthorizeView>
         </CascadingAuthenticationState>
+            
+            <i class="bi bi-arrow-left arrow" @onclick="(async() => {await OnShowOffcanvasClick();})"></i>
 
     </div>
+
+       
 
         <article class="content px-4">
             <div class="py-2">@Body</div>
@@ -228,6 +271,18 @@
 
     private bool reg = false;
 
+    private Offcanvas offcanvas = default!;
+
+    private async Task OnShowOffcanvasClick() {
+        await offcanvas.ShowAsync();
+        Hide();
+    }
+
+    private async Task OnHideOffcanvasClick() {
+
+        await offcanvas.HideAsync();
+
+    }
 
 
 
@@ -246,7 +301,7 @@
         {
 
             clearLogin();
-            
+
         }
 
 
@@ -291,13 +346,13 @@
     }
 
 
-   /* protected override async void OnInitialized()
+    /* protected override async void OnInitialized()
     {
 
 
 
 
-    }*/
+     }*/
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -352,7 +407,7 @@
         {
             Hide();
         }
-        
+
     }
 
 
@@ -366,6 +421,8 @@
 
         await sessionStorageService.RemoveItemAsync("email");
         _auth.SignOut();
+
+        await OnHideOffcanvasClick();
 
     }
 
