@@ -3,6 +3,7 @@
 @using System.Text
 @using static MyAuthenticationStateProvider
 @using Blazored.LocalStorage
+@using EnrouteAppLibrary.Models
 @inherits LayoutComponentBase
 @inject IHttpClientFactory http
 @inject TokenProvider tokenprovider
@@ -10,18 +11,23 @@
 @inject IJSRuntime js
 @inject ILocalStorageService sessionStorageService
 
-<div class="sidebar">
-    <NavMenu />
-</div>
-
-
-<div class="main">
 
 
 
 
 
-    <div class="topbar px-4">
+<div class="bb-page">
+
+
+  <Sidebar @ref="sidebar"
+             IconName="IconName.PinMap"
+             Title="Enroute"
+             DataProvider="SidebarDataProvider" />
+
+<main>
+
+
+        <div class="bb-top-row px-4 d-flex justify-content-end top-row">
         <CascadingAuthenticationState>
             <AuthorizeView>
                 <Authorized>
@@ -33,18 +39,18 @@
 
                 </Authorized>
                 <NotAuthorized>
-                    <div>
+                <!--   <div>
                         Email:<input @bind="email" />
                     </div>
                     <div>
                         Password:   <input type="password" @bind="password" />
-                    </div>
+                    </div> -->
                     <div>
-                        <button @onclick="SignIn">Sign in</button>
+                        <button @onclick="(() => {ShowModal(true,true);})">Sign in</button>
                     </div>
 
                     <div>
-                        <button @onclick="SignIn">Register</button>
+                            <button @onclick="(() => {ShowModal(false,true);})">Register</button>
                     </div>
                 </NotAuthorized>
             </AuthorizeView>
@@ -52,52 +58,195 @@
 
     </div>
 
-    <div class="content px-4">
-        @Body
-    </div>
+        <article class="content px-4">
+            <div class="py-2">@Body</div>
+        </article>
     
     
+</main>
 </div>
 
 
+
+@if (signin)
+{
+    <div class="loading">
+
+        <div Class="spinner">
+
+            <div>
+                Email:<input @bind="email" />
+            </div>
+            <div>
+                Password:   <input type="password" @bind="password" />
+            </div>
+            <div>
+                <button @onclick="SignIn">Sign in</button>
+            </div>
+
+            <div>
+                <button @onclick="(() => {ShowModal(true,false);})">Cancel</button>
+            </div>
+
+        </div>
+
+    </div>
+}
+
+@if (reg)
+{
+    <div class="loading">
+
+        <div Class="spinner">
+
+            <div>
+                Email:<input @bind="email" />
+            </div>
+            <div>
+                Password:   <input type="password" @bind="password" />
+            </div>
+            <div>
+                <button @onclick="register">Register</button>
+            </div>
+
+            <div>
+                <button @onclick="(() => {ShowModal(false,false);})">Cancel</button>
+            </div>
+
+
+        </div>
+
+    </div>
+}
+
+
+@if (visible)
+{
+    <div class="loading">
+
+        <div Class="spinner">
+
+            <Spinner Type="SpinnerType.Border" Size="SpinnerSize.ExtraLarge" />
+
+        </div>
+
+    </div>
+}
+
+
+
+
+
+
 @code {
+
+
+
     public string email = string.Empty;
     public string password = string.Empty;
     public HttpClient httpclient = new();
 
+    Sidebar? sidebar;
+    IEnumerable<NavItem>? navItems = null;
+
+    private bool visible = false;
+
+    private bool signin = false;
+
+    private bool reg = false;
+
+
+    private void Hide() {
+        visible = false;
+    }
+
+    private void Show() {
+        visible = true;
+    }
+
+    private void ShowModal(bool sign, bool show)
+    {
+        if (sign)
+        {
+            signin = show;
+        }
+        else
+        {
+            reg = show;
+        }
+
+    }
+
+    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
+    {
+        if (navItems is null)
+            navItems = GetNavItems();
+
+        return await Task.FromResult(request.ApplyTo(navItems));
+    }
+
+    private IEnumerable<NavItem> GetNavItems()
+    {
+        navItems = new List<NavItem>
+        {
+            new NavItem { Id = "1", Href = "/", IconName = IconName.HouseDoorFill, Text = "Home", Match=NavLinkMatch.All},
+            //new NavItem { Id = "2", Href = "/counter", IconName = IconName.PlusSquareFill, Text = "Counter"},
+            //new NavItem { Id = "3", Href = "/weather", IconName = IconName.Table, Text = "Fetch Data"},
+        };
+
+        return navItems;
+    }
+
 
     protected override async void OnInitialized()
     {
-        httpclient = http.CreateClient("Auth");
-
-        var token = await sessionStorageService.GetItemAsStringAsync("token");
-
-        var email = await sessionStorageService.GetItemAsStringAsync("email");
-
-        if(token != null && email != null)
+        try
         {
-            httpclient.DefaultRequestHeaders.Remove("Authorization");
-            httpclient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
-            var response2 = await httpclient.GetAsync("UserMaintenance/getUserRole");
 
-            if (response2.IsSuccessStatusCode)
+           
+            httpclient = http.CreateClient("Auth");
+
+            var token = await sessionStorageService.GetItemAsStringAsync("token");
+
+            var email = await sessionStorageService.GetItemAsStringAsync("email");
+
+            if (token != null && email != null)
             {
-                var role = await response2.Content.ReadAsStringAsync();
+                httpclient.DefaultRequestHeaders.Remove("Authorization");
+                httpclient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
-                _auth.SignIn(email, role);
+                var response2 = await httpclient.GetAsync("UserMaintenance/getUserRole");
+
+                if (response2.IsSuccessStatusCode)
+                {
+                    var role = await response2.Content.ReadAsStringAsync();
+
+                    _auth.SignIn(email, role);
+                }
+                else
+                {
+                    await sessionStorageService.RemoveItemAsync("token");
+
+                    await sessionStorageService.RemoveItemAsync("email");
+                }
+
+
+
             }
-            else
-            {
-                await sessionStorageService.RemoveItemAsync("token");
-
-                await sessionStorageService.RemoveItemAsync("email");
-            }
-
-
-
 
         }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+        finally
+        {
+            Hide();
+        }
+
+
+
 
     }
 
@@ -117,18 +266,25 @@
 
     private async Task SignIn()
     {
-
-
-        var myObject = JsonSerializer.Serialize(new { email = email, password = password });
-
-
-
-
-        var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
-
-
         try
         {
+            Show();
+
+            if (String.IsNullOrEmpty(email) || String.IsNullOrWhiteSpace(email) || String.IsNullOrEmpty(password) || String.IsNullOrWhiteSpace(password))
+            {
+                await js.InvokeVoidAsync("showFailToast", "No Credentials entered");
+                return;
+            }
+
+            var myObject = JsonSerializer.Serialize(new { email = email, password = password });
+
+
+
+
+            var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
+
+
+
             var response = await httpclient.PostAsync("login", content);
             if (response.IsSuccessStatusCode)
             {
@@ -162,8 +318,6 @@
                             await sessionStorageService.SetItemAsStringAsync("token", tokenprovider.accessToken);
                         }
 
-                       
-
                         _auth.SignIn(email, role);
 
                     }
@@ -176,33 +330,54 @@
             }
             else
             {
-                await js.InvokeVoidAsync("showFailToast", "Incorrect Credentials");
+
+                var err = await response.Content.ReadAsStringAsync();
+
+                var d = JsonSerializer.Deserialize<ErrorDetails>(err);
+                if(d != null)
+                {
+
+                    await js.InvokeVoidAsync("showFailToast", $"Incorrect Credentials - {d.detail}");
+
+                }
+                else
+                {
+                    await js.InvokeVoidAsync("showFailToast", $"Incorrect Credentials - {err}");
+                }
+
+
             }
         }
         catch (Exception e)
         {
-            await js.InvokeVoidAsync("showFailToast", $"Failed to login {e.Message}");
+            await js.InvokeVoidAsync("showFailToast", $"Failed to login - {e.Message}");
+        }
+        finally
+        {
+            Hide();
+            ShowModal(true, false);
         }
 
 
-
     }
-    
+
 
     private async Task register()
     {
-   
-
-        var myObject = JsonSerializer.Serialize(new { email = email, password = password });
 
 
-
-
-        var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
 
 
         try
         {
+            Show();
+
+            var myObject = JsonSerializer.Serialize(new { email = email, password = password });
+
+
+
+
+            var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
             var response = await httpclient.PostAsync("register", content);
             if (response.IsSuccessStatusCode)
             {
@@ -221,37 +396,31 @@
                     httpclient.DefaultRequestHeaders.Add("Authorization", "Bearer " + tokenprovider.accessToken);
 
 
-                     var response2 = await httpclient.GetAsync("UserMaintenance/getUserRole");
+                    var response2 = await httpclient.GetAsync("UserMaintenance/getUserRole");
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var role   = await response2.Content.ReadAsStringAsync();
-                       
-                       
-                    await sessionStorageService.SetItemAsStringAsync("email", email);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var role   = await response2.Content.ReadAsStringAsync();
 
-                       
+
+                        await sessionStorageService.SetItemAsStringAsync("email", email);
+
+
                         if (tokenprovider.accessToken != null)
                         {
                             await sessionStorageService.SetItemAsStringAsync("token", tokenprovider.accessToken);
                         }
 
-                    _auth.SignIn(email,role);
+                        _auth.SignIn(email,role);
+
+                    }
 
                 }
-
-              }
-
-               
-
-               
-
-
-
 
             }
             else
             {
+                
                 await js.InvokeVoidAsync("showFailToast", "Registration Failed, User already exist");
             }
         }
@@ -259,8 +428,16 @@
         {
             await js.InvokeVoidAsync("showFailToast", "Registration Failed");
         }
+        finally
+        {
+            Hide();
+            ShowModal(false, false);
+        }
 
 
 
     }
+
+
+
 }

@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnrouteUI", "EnrouteUI\Enro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Enroute-Backend", "Enroute-Backend\Enroute-Backend.csproj", "{234AF752-4D96-442D-8E70-8E640E58BC79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnrouteAppLibrary", "EnrouteAppLibrary\EnrouteAppLibrary.csproj", "{5F798E31-0C7E-4760-A8E2-FBF778F9130A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnrouteAppLibrary", "EnrouteAppLibrary\EnrouteAppLibrary.csproj", "{5F798E31-0C7E-4760-A8E2-FBF778F9130A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

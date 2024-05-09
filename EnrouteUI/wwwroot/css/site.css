@@ -1,4 +1,4 @@
-﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+﻿
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -16,9 +16,35 @@ app {
     align-items: center;
 }
 
+.loading {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    z-index: 1;
+}
+
+.spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -20px;
+    margin-left: -25px;
+    width: 50px;
+    height: 40px;
+    text-align: center;
+    font-size: 10px;
+
+
+}
+
 .main {
     flex: 1;
 }
+
+
 
     .main .top-row {
         background-color: #e6e6e6;
@@ -97,15 +123,12 @@ app {
 }
 
 @media (max-width: 767.98px) {
-    .main .top-row {
-        display: none;
+    .top-row {
+        display: none !important;
     }
 }
 
 @media (min-width: 768px) {
-    app {
-        flex-direction: row;
-    }
 
     .sidebar {
         width: 300px;
@@ -133,3 +156,4 @@ app {
         display: block;
     }
 }
+

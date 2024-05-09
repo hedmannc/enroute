@@ -14,11 +14,11 @@
 <input type="checkbox" bind="@DisablePoiInfoWindow" />Disable POI's popup info window
 <br>
 
-<MapEventList  @ref="@_eventList" Events="@_events"></MapEventList>
+<!--<MapEventList  @ref="@_eventList" Events="@_events"></MapEventList>-->
 
 @code {
     private GoogleMap _map1 = default!;
-    private MapEventList _eventList = default!;
+  //  private MapEventList _eventList = default!;
 
     private MapOptions _mapOptions = default!;
 
@@ -271,7 +271,7 @@
 				Map = _map1.InteropObject,
 				Label = new MarkerLabel { Text = $"Test {_markers.Count()}", FontWeight = "bold" },
 				Draggable=true,
-				Icon = new Icon()
+				Icon = new GoogleMapsComponents.Maps.Icon()
 					{
 					Url = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
 					}
