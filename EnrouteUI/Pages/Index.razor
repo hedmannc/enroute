@@ -4,10 +4,13 @@
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
 @using System.Text.Json.Nodes
-@using System.Threading
+@using System.Timers
+@using Majorsoft.Blazor.Components.Timer
 @inject IJSRuntime JS
 @inject Locations locService
 
+
+<AdvancedTimer @ref="_counter" IntervalInMilisec="1000" DelayInMilisec="2000" Occurring="Times.Exactly(1)" OnIntervalElapsed="@(c => Counter(c))" />
 
 
 <input @bind="Destination" />
@@ -22,8 +25,10 @@
 <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
 <button @onclick="Recenter">Re-center to my Location</button>
 
+
 @if (RoutingMode)
 {
+    <button @onclick="Reroute">ReRoute</button>
     <button @onclick="RemoveRoute">Remove Route</button>
 
 
@@ -93,6 +98,18 @@
 
     public Timer? timer = null;
 
+    public string? currentRoutedDestination;
+
+    private AdvancedTimer _counter = new();
+    //private ulong _count = 0;
+    private async void Counter(ulong count)
+    {
+        await ReloadLocation(false);
+        CounterReset();
+
+    }
+    private void CounterReset() => _counter.Reset();
+
 
 
 
@@ -116,9 +133,9 @@
 
         await Recenter();
 
+        
 
-
-        timer = new Timer(new TimerCallback(_ =>
+        /*timer = new Timer(new TimerCallback(_ =>
         {
 
             InvokeAsync(async () =>
@@ -146,7 +163,7 @@
                   });
        }), null, 600000, 500);
             }
-        }
+        } */
 
 
         await LoadDBMarkers();
@@ -163,6 +180,9 @@
                 Map = _map1.InteropObject
             });
     }
+
+
+
 
     private async Task AddMarker(LatLngLiteral location,string? name = "Name", string? description = "Description")
     {
@@ -425,6 +445,9 @@
 
         _durationTotalString = null;
         _distanceTotalString = null;
+
+        currentRoutedDestination = null;
+       
     }
 
 
@@ -536,10 +559,43 @@
 
                 await addDirection(latlong);
 
+                currentRoutedDestination = Destination;
             }
         }
 
         if(loc == null)
+        {
+            await JS.InvokeVoidAsync("showFailToast", "Destination could not be found");
+        }
+    }
+
+
+    private async Task Reroute()
+    {
+        if (String.IsNullOrEmpty(currentRoutedDestination) || String.IsNullOrWhiteSpace(currentRoutedDestination))
+        {
+            await JS.InvokeVoidAsync("showFailToast", "Destination has not been entered");
+            return;
+        }
+
+        var loc = locations.Where(a => a.Name?.ToLower().Trim() == currentRoutedDestination.ToLower().Trim()).FirstOrDefault();
+
+
+
+        if (loc != null)
+        {
+            var building = buildings.Where(a => a.Id == loc.BuildingId).FirstOrDefault();
+
+            if (building != null)
+            {
+                var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(building.Latitude), Lng = Convert.ToDouble(building.Longitude) };
+
+                await addDirection(latlong);
+
+            }
+        }
+
+        if (loc == null)
         {
             await JS.InvokeVoidAsync("showFailToast", "Destination could not be found");
         }
