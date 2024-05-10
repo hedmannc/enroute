@@ -2,6 +2,6 @@
 {
     public class Config
     {
-        public string BackendURL { get; set; } = "http://www.enrouteAPI.somee.com";
+        public string BackendURL { get; set; } = "https://www.enrouteAPI.somee.com";
     }
 }
