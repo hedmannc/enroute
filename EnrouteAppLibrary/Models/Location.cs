@@ -11,5 +11,4 @@ public partial class Location
 
     public int? BuildingId { get; set; }
 
-    public string? Description { get; set; }
 }

@@ -53,7 +53,7 @@ namespace Enroute_Backend.Controllers
         }
 
         [HttpGet]
-        [Authorize("Admin,Security")]
+        [Authorize]
         [ActionName("getAllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -205,6 +205,46 @@ namespace Enroute_Backend.Controllers
                 await _db.SaveChangesAsync();
             }
         }
+
+
+        [HttpGet]
+        [Authorize]
+        [ActionName("getUserLastLocation")]
+        public async Task<IActionResult> getUserLastHistory(string email)
+        {
+            try
+            {
+
+
+                var user = await userManager.FindByEmailAsync(email);
+
+                if (user != null)
+                {
+                    var lastLocation = _db.UserLocationHistories.Where(a => a.UserId == user.Id).OrderByDescending(a => a.Id).FirstOrDefault();
+
+
+                    return Ok(lastLocation);
+
+                }
+                else
+                {
+                    return BadRequest();
+                }
+
+
+
+
+
+
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+
 
 
     }

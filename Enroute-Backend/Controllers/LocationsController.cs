@@ -84,9 +84,8 @@ namespace Enroute_Backend.Controllers
 
             try
             {
-                var db = _applicationDbContext;
 
-                var buildings = await db.Buildings.ToListAsync();
+                var buildings = await _applicationDbContext.Buildings.ToListAsync();
 
 
 
@@ -107,24 +106,45 @@ namespace Enroute_Backend.Controllers
 
 
         [HttpPost]
-        [Authorize("Admin")]
+        [Authorize]
         [ActionName("AddBuilding")]
         public async Task<IActionResult> AddBuilding(Building building)
         {
 
             try
             {
-                var db = _applicationDbContext;
 
-                await db.Buildings.AddAsync(building);
+  
+             if(building.Id <= 0)
+                {
+                    await _applicationDbContext.Buildings.AddAsync(building);
 
-                await db.SaveChangesAsync();
+                }
+
+                else
+                {
+                    var b = await _applicationDbContext.Buildings.Where(a => a.Id == building.Id).FirstAsync();
+
+                    b.Longitude = building.Longitude;
+                    b.Latitude = building.Latitude;
+                    b.Name = building.Name;
+                    b.Description = building.Description;
+                }
+
+
+
+
+
 
                 return Ok();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+            finally
+            {
+                await _applicationDbContext.SaveChangesAsync();
             }
 
 

@@ -27,6 +27,7 @@ public partial class ApplicationDbContext : DbContext
     {
         modelBuilder.Entity<Building>(entity =>
         {
+            entity.Property(e => e.Description).IsUnicode(false);
             entity.Property(e => e.Latitude).HasColumnType("numeric(18, 10)");
             entity.Property(e => e.Longitude).HasColumnType("numeric(18, 10)");
             entity.Property(e => e.Name)
@@ -36,7 +37,7 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Location>(entity =>
         {
-            entity.Property(e => e.Description).IsUnicode(false);
+           
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);

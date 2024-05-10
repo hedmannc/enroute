@@ -18,22 +18,70 @@
 
 
 
-<input @bind="Destination" />
-<button @onclick="AddDirections">Find Destination</button>
+<Offcanvas @ref="offcanvas" Placement=" Placement.Top" Size="OffcanvasSize.Large">
+<BodyTemplate>
+
+ <div class="card-body p-5 text-center">
 <CascadingAuthenticationState>
     <AuthorizeView Roles="Security">
-        <input @bind="userLogin" />
-        <button @onclick="FindUser">Find User</button>
+
+                    <div class="search-container">
+                        <form class="text-center">
+                            <input style="width:auto" type="text" placeholder="Find User" @bind="userLogin" name="search">
+                            <i class="fa fa-search" @onclick="FindUser"></i>
+                        </form>
+                    </div>
+
     </AuthorizeView>
 </CascadingAuthenticationState>
+</div>
+</BodyTemplate>
+</Offcanvas>
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="Security">
+<i class="bi bi-arrow-down" @onclick="(async() => {await OnShowOffcanvasClick();})">Show More Items</i>
+</AuthorizeView>
+</CascadingAuthenticationState>
+ 
 
+<!--<div class="text-center">
+    <div class="form-group"><input class="form-control form-control-md" @bind="Destination" /></div>
+
+<button class="btn btn-primary btn-sm btn-block" @onclick="AddDirections">Find Destination</button>
+</div> -->
+<!--
+ <div class="container h-100">
+<div class="d-flex justify-content-center h-100">
+    <div class="search">
+        <input class="search_input" @bind="Destination" type="text" name="" placeholder="Find Destination">
+        <a href="#" class="search_icon" @onclick="AddDirections"><i class="fa fa-search"></i></a>
+    </div>
+
+</div>
+</div>
+-->
+<div class="search-container">
+    <form class="text-center">
+        <input style="width:auto" type="text" placeholder="Find Destination" @bind="Destination" name="search">
+        <i class="fa fa-search" @onclick="AddDirections"></i>
+    </form>
+</div>
+<br/>
 <GoogleMap @ref="@_map1" Id="map1" Options="@_mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
 <button @onclick="Recenter">Re-center to my Location</button>
 
 <CascadingAuthenticationState>
     <AuthorizeView Roles="Security">
-        <button @onclick="FindUser">Add Location</button>
-        <button @onclick="FindUser">Add Buidling</button>
+        
+        @if (RoutingMode)
+        {
+            <button @onclick="(async () => {ShowModals(true,true);})">Edit Buidling</button>
+        }
+        else
+        {
+            <button @onclick="(async () => {ShowModals(true,true);})">Add Buidling</button>
+        }
+     
     </AuthorizeView>
     </CascadingAuthenticationState>
 
@@ -69,14 +117,151 @@
 
 
 <!--<MapEventList @ref="@_eventList" Events="@_events"></MapEventList>-->
+@if (Showbldg)
+{
+    <div class="loading">
+
+        <!--<div Class="spinner">
+
+        <div>
+        Email:<input @bind="email" />
+        </div>
+        <div>
+        Password:   <input type="password" @bind="password" />
+        </div>
+        <div>
+        <button @onclick="SignIn">Sign in</button>
+        </div>
+
+        <div>
+        <button @onclick="(() => {ShowModal(true,false);})">Cancel</button>
+        </div>
+
+        </div> -->
+
+
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                    <div class="card shadow-2-strong" style="border-radius: 1rem;">
+                        <div class="card-body p-5 text-center">
+
+                            @if (RoutingMode)
+                            {
+                                <h3 class="mb-5">Edit Building</h3>
+                            }
+                            else{
+
+                                <h3 class="mb-5">Add Building</h3>
+                            }
+                            
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input @bind="bldgName" id="typeEmailX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typeEmailX-2">Name</label>
+                            </div>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input @bind="bldgDesc" id="typeEmailX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typeEmailX-2">Description</label>
+                            </div>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input @bind="bldglat" id="typeEmailX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typeEmailX-2">Latitude</label>
+                            </div>
+
+                            <div data-mdb-input-init class="form-outline mb-4">
+                                <input @bind="bldglong" id="typeEmailX-2" class="form-control form-control-lg" />
+                                <label class="form-label" for="typeEmailX-2">Longitude</label>
+                            </div>
+
+
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block" @onclick="AddBulding" type="submit">Submit</button>
+
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-secondary btn-lg btn-block" @onclick="UseCurrentLocation" type="button">Use Current Location</button>
+
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-danger btn-lg btn-block" @onclick="(async () => {ShowModals(true,false);})" type="submit">Cancel</button>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+}
+
+
+@if (visible)
+{
+    <div class="loading">
+
+        <div Class="spinner">
+
+            <Spinner Type="SpinnerType.Border" Size="SpinnerSize.ExtraLarge" />
+
+        </div>
+
+    </div>
+}
+
+
+
+
+
+
+
+
 @functions {
 
 
     [CascadingParameter]
-
-
     private Task<AuthenticationState>? authenticationState { get; set; }
 
+    private bool visible = false;
+
+    private string? bldgName = string.Empty;
+
+    private string? bldgDesc = string.Empty;
+
+
+    private decimal? bldglong;
+
+
+    private decimal? bldglat;
+
+
+
+    private int? bldgId;
+
+    private void Show()
+    {
+        visible = true;
+    }
+
+    private void Hide()
+    {
+        visible = false;
+    }
+
+    private Offcanvas offcanvas = default!;
+
+    private async Task OnShowOffcanvasClick()
+    {
+        await offcanvas.ShowAsync();
+        Hide();
+    }
+
+    private async Task OnHideOffcanvasClick()
+    {
+
+        await offcanvas.HideAsync();
+
+    }
 
     private GoogleMap _map1 = default!;
 
@@ -115,7 +300,9 @@
 
     public string? currentRoutedDestination;
 
-    public bool addingMarker = true;
+    private bool addingMarker = true;
+
+    private bool Showbldg = false;
 
     private AdvancedTimer _counter = new();
 
@@ -138,6 +325,60 @@
 
     private void Counter2Reset() => _counter2.Reset();
 
+    private void AddBuldingShow() => ShowModals(true, true);
+
+
+    private void ShowModals(bool bldg, bool show)
+    {
+        if (!show)
+        {
+
+            clearModal();
+
+        }
+
+
+        if (bldg)
+        {
+            Showbldg = show;
+        }
+
+    }
+
+
+    private void clearModal()
+    {
+
+        bldgName = string.Empty;
+
+        bldgDesc = string.Empty;
+
+
+        bldglong = null;
+
+
+        bldglat = null;
+
+
+    }
+
+
+    private async void UseCurrentLocation()
+    {
+        var currentlocation = await GetLocation();
+
+        if(currentlocation != null)
+        {
+
+            bldglong = Convert.ToDecimal(currentlocation.Lng);
+
+
+            bldglat = Convert.ToDecimal(currentlocation.Lat);
+
+        }
+
+
+    }
 
 
 
@@ -167,31 +408,31 @@
         {
 
         InvokeAsync(async () =>
-            {
-            await ReloadLocation(false);
+        {
+        await ReloadLocation(false);
 
-            });
-            }), null, 1000, 1000);
+        });
+        }), null, 1000, 1000);
 
 
-            if (authenticationState != null)
-            {
-            var authState = await authenticationState;
-            var user = authState?.User;
+        if (authenticationState != null)
+        {
+        var authState = await authenticationState;
+        var user = authState?.User;
 
-            if (user?.Identity != null && user.Identity.IsAuthenticated)
-                  {
-                  var locationHistoryTimer = new Timer(new TimerCallback(_ =>
-           {
+        if (user?.Identity != null && user.Identity.IsAuthenticated)
+              {
+              var locationHistoryTimer = new Timer(new TimerCallback(_ =>
+       {
 
-           InvokeAsync(async () =>
-           {
-           await ReloadLocation(false);
+       InvokeAsync(async () =>
+       {
+       await ReloadLocation(false);
 
-           });
-           }), null, 600000, 500);
-        }
-        } */
+       });
+       }), null, 600000, 500);
+    }
+    } */
 
 
         await LoadDBMarkers();
@@ -344,11 +585,11 @@
         if(currentLocation != null)
         {
 
-             userService.setUserLocation(currentLocation);
+            userService.setUserLocation(currentLocation);
         }
 
- 
-       
+
+
 
     }
 
@@ -521,13 +762,16 @@
         _distanceTotalString = null;
 
         currentRoutedDestination = null;
-       
+        bldgId = null;
+        clearModal();
+
     }
 
 
 
     private async Task addDirection(LatLngLiteral dest)
     {
+        await RemoveRoute();
         var currentLocation = await GetLocation();
 
         RoutingMode = true;
@@ -579,6 +823,15 @@
 
     private async Task LoadDBMarkers()
     {
+
+        foreach (var m in _markers)
+        {
+            await m.SetMap(null);
+        }
+
+
+
+
         locations = new List<Location>();
 
         buildings = new List<Building>();
@@ -587,27 +840,39 @@
 
         buildings.AddRange( await locService.getBuildings());
 
-        foreach(var loc in locations)
+
+
+        /*foreach(var loc in locations)
         {
-            var building = buildings.Where(a => a.Id == loc.BuildingId).FirstOrDefault();
+        var building = buildings.Where(a => a.Id == loc.BuildingId).FirstOrDefault();
 
             if(building != null)
             {
-                var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(building.Latitude), Lng = Convert.ToDouble(building.Longitude) };
+            var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(building.Latitude), Lng = Convert.ToDouble(building.Longitude) };
 
 
                 if (loc.Name != null)
                 {
-                    //await RemoveMarker(loc.Name);
-                    await AddMarker(latlong, loc.Name, loc.Description);
-                }
+                //await RemoveMarker(loc.Name);
+                if (!_markers.Where(a => a.GetPosition().Result.Lat == latlong.Lat && a.GetPosition().Result.Lng == latlong.Lng).Any())
+                    {
 
-
+                    await AddMarker(latlong, building.Name, building.Description);
+            }
             }
 
 
+            }
+            */
 
+        foreach(var bldg in buildings)
+        {
+            var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(bldg.Latitude), Lng = Convert.ToDouble(bldg.Longitude) };
+            await AddMarker(latlong, bldg.Name, bldg.Description);
         }
+
+
+
     }
 
 
@@ -618,6 +883,28 @@
             await JS.InvokeVoidAsync("showFailToast", "Destination has not been entered");
             return;
         }
+
+
+        var bldg = buildings.Where(a => a.Name.ToLower().Trim() == Destination.ToLower().Trim()).FirstOrDefault();
+
+        if (bldg != null)
+        {
+            var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(bldg.Latitude), Lng = Convert.ToDouble(bldg.Longitude) };
+
+            bldgName = bldg.Name;
+            bldgDesc = bldg.Description;
+            bldglat =  bldg.Latitude;
+            bldglong = bldg.Longitude;
+            bldgId = bldg.Id;
+
+            await addDirection(latlong);
+
+            currentRoutedDestination = Destination;
+
+            return;
+        }
+
+
 
         var loc = locations.Where(a => a.Name?.ToLower().Trim() == Destination.ToLower().Trim()).FirstOrDefault();
 
@@ -652,6 +939,21 @@
             return;
         }
 
+        var bldg = buildings.Where(a => a.Name.ToLower().Trim() == currentRoutedDestination.ToLower().Trim()).FirstOrDefault();
+
+        if (bldg != null)
+        {
+            var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(bldg.Latitude), Lng = Convert.ToDouble(bldg.Longitude) };
+
+            await addDirection(latlong);
+
+
+            return;
+        }
+
+
+
+
         var loc = locations.Where(a => a.Name?.ToLower().Trim() == currentRoutedDestination.ToLower().Trim()).FirstOrDefault();
 
 
@@ -677,34 +979,94 @@
 
     private async Task FindUser()
     {
-        if (String.IsNullOrEmpty(Destination) || String.IsNullOrWhiteSpace(Destination))
+        try
         {
-            await JS.InvokeVoidAsync("showFailToast", "Destination has not been entered");
-            return;
-        }
-
-        var loc = locations.Where(a => a.Name?.ToLower() == Destination).FirstOrDefault();
-
-
-
-        if (loc != null)
-        {
-            var building = buildings.Where(a => a.Id == loc.BuildingId).FirstOrDefault();
-
-            if (building != null)
+            Show();
+            if (String.IsNullOrEmpty(userLogin) || String.IsNullOrWhiteSpace(userLogin))
             {
-                var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(building.Latitude), Lng = Convert.ToDouble(building.Longitude) };
-
-                await addDirection(latlong);
-
+                await JS.InvokeVoidAsync("showFailToast", "User Details has not been entered");
+                return;
             }
+
+            var loc = await userService.getUserLocation(userLogin);
+
+
+            if (loc == null)
+            {
+                await JS.InvokeVoidAsync("showFailToast", "No User Location Data found");
+                return;
+            }
+
+
+            var latlong = new LatLngLiteral() { Lat = Convert.ToDouble(loc.Latitude), Lng = Convert.ToDouble(loc.Longitude) };
+
+            await addDirection(latlong);
+        }
+        catch (Exception e)
+        {
+            await JS.InvokeVoidAsync("showFailToast", $"User Location could not be found - {e.Message}");
+
+        }
+        finally
+        {
+
+            Hide();
         }
 
-        if (loc == null)
-        {
-            await JS.InvokeVoidAsync("showFailToast", "Destination could not be found");
-        }
+
+            
+        
+
     }
 
+
+    private async Task AddBulding()
+    {
+        try
+        {
+            Show();
+            if (String.IsNullOrEmpty(bldgName) || String.IsNullOrWhiteSpace(bldgName) || String.IsNullOrEmpty(bldgDesc) || String.IsNullOrWhiteSpace(bldgDesc) || bldglat == null ||  bldglong == null)
+            {
+                await JS.InvokeVoidAsync("showFailToast", "Parameters Incomplete");
+                return;
+            }
+
+            var buidling = new Building() { Name = bldgName, Description = bldgDesc, Latitude = bldglat.Value, Longitude = bldglong.Value };
+
+
+            if(bldgId != null)
+            {
+                buidling.Id = bldgId.Value;
+            }
+
+
+            await locService.setBuilding(buidling);
+
+
+
+            await LoadDBMarkers();
+
+            StateHasChanged();
+
+
+
+        }
+        catch (Exception e)
+        {
+            await JS.InvokeVoidAsync("showFailToast", $"Buidling could not be created - {e.Message}");
+
+        }
+        finally
+        {
+
+            ShowModals(true, false);
+            Hide();
+        }
+
+
+
+
+
+    }
 
 }
