@@ -341,6 +341,20 @@
         if (bldg)
         {
             Showbldg = show;
+
+            var b = buildings.Where(a => a.Name == currentRoutedDestination).First();
+
+            bldgId = b.Id;
+
+            bldgName = b.Name;
+
+            bldgDesc = b.Description;
+
+            bldglong = b.Longitude;
+
+
+            bldglat = b.Latitude;
+
         }
 
     }
@@ -348,6 +362,8 @@
 
     private void clearModal()
     {
+
+        bldgId = null;
 
         bldgName = string.Empty;
 
@@ -762,7 +778,7 @@
         _distanceTotalString = null;
 
         currentRoutedDestination = null;
-        bldgId = null;
+   
         clearModal();
 
     }
