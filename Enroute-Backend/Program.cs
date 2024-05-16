@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
-
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,7 +40,17 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 
-builder.Services.AddCors();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("https://localhost:55748","https://localhost:53417");
+                          policy.AllowAnyHeader();
+                          policy.AllowAnyMethod();
+                          policy.AllowCredentials();
+                      });
+});
 
 builder.Services.AddSwaggerGen(opt =>
 {
@@ -73,7 +83,7 @@ builder.Services.AddSwaggerGen(opt =>
 
 var app = builder.Build();
 
-app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:55748").AllowCredentials().Build());
+app.UseCors(MyAllowSpecificOrigins);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
