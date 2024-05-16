@@ -1,0 +1,17 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Enroute-Backend/obj
+/Enroute-Backend/Properties
+/EnrouteAppLibrary/bin/Debug/net8.0
+/EnrouteAppLibrary/bin/Debug/net8.0/EnrouteAppLibrary.deps.json
+/EnrouteAppLibrary/obj
+/EnrouteUI/bin/Debug/net8.0
+/EnrouteUI/obj
+/EnrouteUI/Properties
+/GoogleMapsComponents/bin/Debug
+/GoogleMapsComponents/obj/Debug
+/GoogleMapsComponents/obj/Release/net8.0
+/GoogleMapsComponents/obj
