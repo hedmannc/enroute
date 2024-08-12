@@ -454,12 +454,25 @@
             {
                 var token = await response.Content.ReadAsStringAsync();
 
+                if(token != null)
+                {
+                    var provider = JsonSerializer.Deserialize<TokenProvider>(token);
 
-                tokenprovider = JsonSerializer.Deserialize<TokenProvider>(token);
+                    if(provider != null)
+                    {
+                        tokenprovider = provider;
+                    }
+                }
+                else
+                {
+                    throw new Exception("There was an unexpected error please try again");
+                }
+
+                
 
                 if (tokenprovider != null)
                 {
-
+                   
 
                     //httpclient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenprovider.accessToken);
 
@@ -559,9 +572,20 @@
             {
                 var token = await response.Content.ReadAsStringAsync();
 
+                if (token != null)
+                {
+                    var provider = JsonSerializer.Deserialize<TokenProvider>(token);
 
-                tokenprovider = JsonSerializer.Deserialize<TokenProvider>(token);
-
+                    if (provider != null)
+                    {
+                        tokenprovider = provider;
+                    }
+                    
+                }
+                else
+                {
+                    throw new Exception("There was an unexpected error please try again");
+                }
                 if (tokenprovider != null)
                 {
 
